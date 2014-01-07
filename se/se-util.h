@@ -1,24 +1,25 @@
-#include "se.h"
 #include <netdb.h>
+#include <sys/ioctl.h>
 #ifdef linux
 #include <sys/un.h>
 #include <stddef.h>
 #endif
 
-#include "../common/smp.h"
-#include "../common/timeouts.h"
+#include "../merry.h"
 
 #ifndef _SE_UTIL_H
 #define _SE_UTIL_H
 
 #define _NTOHS(p) (((p)[0] << 8) | (p)[1])
+#define SE_CONNECT_TIMEOUT -1001
+#define SE_DNS_QUERY_TIMEOUT -1001
 
 typedef void (*se_be_accept_cb)(int fd, struct in_addr client_addr);
 typedef void (*se_be_dns_query_cb)(void *data, struct sockaddr_in addr);
 typedef void (*se_be_connect_cb)(void *data, int fd);
 int se_accept(int loop_fd, int server_fd, se_be_accept_cb _be_accept);
+int se_dns_query(int loop_fd, const char *name, int timeout, se_be_dns_query_cb cb, void *data);
 int se_connect(int loop_fd, const char *host, int port, int timeout, se_be_connect_cb _be_connect, void *data);
-int se_dns_query(int loop_fd, const char *name, se_be_dns_query_cb cb, void *data);
 
 typedef struct {
     uint32_t    key1;
@@ -33,6 +34,7 @@ typedef struct {
     void *timeout_ptr;
 
     char dns_query_name[60];
+    int loop_fd;
     int fd;
     int dns_tid;
     int port;

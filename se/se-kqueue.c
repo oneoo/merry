@@ -50,7 +50,7 @@ int se_loop(int loop_fd, int waitout, se_waitout_proc_t waitout_proc)
     return 0;
 }
 
-static int ev_set_fd(int loop_fd, int fd, unsigned ACT, void *ptr)
+static int ev_set_fd(int loop_fd, int fd, unsigned ACT, se_ptr_t *ptr)
 {
     EV_SET(&ev[0], fd, EVFILT_READ, ACT, 0, 0, ptr);
     EV_SET(&ev[1], fd, EVFILT_WRITE, ACT, 0, 0, ptr);
@@ -73,10 +73,8 @@ se_ptr_t *se_add(int loop_fd, int fd, void *data)
     ptr->data = data;
 
     int ret = 0;
-    EV_SET(&ev[0], fd, EVFILT_READ, EV_ADD, 0, 0, ptr);
-    EV_SET(&ev[1], fd, EVFILT_WRITE, EV_ADD, 0, 0, ptr);
-    EV_SET(&ev[2], fd, EVFILT_SIGNAL, EV_ADD, 0, 0, ptr);
-    ret = kevent(loop_fd, ev, 3, NULL, 0, NULL);
+
+    ret = ev_set_fd(loop_fd, fd, EV_ADD, ptr);
 
     if(ret < 0) {
         smp_free(ptr);
@@ -109,6 +107,7 @@ int se_delete(se_ptr_t *ptr)
 int se_be_read(se_ptr_t *ptr, se_rw_proc_t func)
 {
     ptr->rfunc = func;
+    ptr->wfunc = NULL;
 
     ev_set_fd(ptr->loop_fd, ptr->fd, EV_DISABLE, ptr);
 
@@ -118,6 +117,7 @@ int se_be_read(se_ptr_t *ptr, se_rw_proc_t func)
 
 int se_be_write(se_ptr_t *ptr, se_rw_proc_t func)
 {
+    ptr->rfunc = NULL;
     ptr->wfunc = func;
 
     ev_set_fd(ptr->loop_fd, ptr->fd, EV_DISABLE, ptr);
@@ -129,6 +129,7 @@ int se_be_write(se_ptr_t *ptr, se_rw_proc_t func)
 int se_be_pri(se_ptr_t *ptr, se_rw_proc_t func)
 {
     ptr->rfunc = func;
+    ptr->wfunc = NULL;
 
     ev_set_fd(ptr->loop_fd, ptr->fd, EV_DISABLE, ptr);
 

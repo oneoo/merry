@@ -25,6 +25,10 @@
 #ifndef _MERRY_H
 #define _MERRY_H
 
+#define malloc(s) smp_malloc(s)
+#define realloc(p,s) smp_realloc(p,s)
+#define free(p) smp_free(p)
+
 extern time_t now;
 extern struct tm _now_gtm;
 extern struct tm _now_lc;
@@ -45,6 +49,7 @@ extern int pid;
 
 extern int server_fd;
 extern int loop_fd;
+extern int se_errno;
 
 extern char bind_addr[20];
 extern int bind_port;

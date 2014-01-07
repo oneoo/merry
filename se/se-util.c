@@ -1,6 +1,4 @@
 #include "se-util.h"
-#include "../merry.h"
-#include <sys/ioctl.h>
 
 static se_be_accept_cb be_accept = NULL;
 static int _server_fd = 0;
@@ -14,6 +12,8 @@ static struct sockaddr_in rt_addr = {0};
 static struct sockaddr_in null_addr = {0};
 static void *dns_cache[3][64] = {{0}, {0}, {0}};
 static int dns_cache_ttl = 180;
+
+int se_errno = 0;
 
 static int be_accept_f(se_ptr_t *ptr)
 {
@@ -293,11 +293,13 @@ static void dns_query_timeout_handle(void *ptr)
     _se_util_epdata_t *epd = ptr;
     close(epd->fd);
     delete_timeout(epd->timeout_ptr);
+    se_errno = SE_DNS_QUERY_TIMEOUT;
     epd->cb(epd->data, null_addr);
+    se_errno = 0;
     smp_free(epd);
 }
 
-int se_dns_query(int loop_fd, const char *name, se_be_dns_query_cb cb, void *data)
+int se_dns_query(int loop_fd, const char *name, int timeout, se_be_dns_query_cb cb, void *data)
 {
     if(get_dns_cache(name, &rt_addr.sin_addr)) {
         cb(data, rt_addr);
@@ -463,7 +465,7 @@ int se_dns_query(int loop_fd, const char *name, se_be_dns_query_cb cb, void *dat
         sizeof(struct sockaddr)
     );
 
-    epd->timeout_ptr = add_timeout(epd, 10, dns_query_timeout_handle);
+    epd->timeout_ptr = add_timeout(epd, timeout, dns_query_timeout_handle);
 
     return 1;
 }
@@ -515,14 +517,16 @@ static void connect_timeout_handle(void *ptr)
     _se_util_epdata_t *epd = ptr;
     close(epd->fd);
     delete_timeout(epd->timeout_ptr);
+    se_errno = SE_CONNECT_TIMEOUT;
     epd->connect_cb(epd->data, -1);
+    se_errno = 0;
     smp_free(epd);
 }
 
 static void be_dns_query(void *data, struct sockaddr_in addr)
 {
     _se_util_epdata_t *epd = (_se_util_epdata_t *)data;
-    epd->se_ptr = se_add(loop_fd, epd->fd, epd);
+    epd->se_ptr = se_add(epd->loop_fd, epd->fd, epd);
     se_be_write(epd->se_ptr, __be_connect);
     addr.sin_port = htons(epd->port);
 
@@ -628,8 +632,9 @@ int se_connect(int loop_fd, const char *host, int port, int timeout, se_be_conne
 
         } else if(get_dns_cache(host, &rt_addr.sin_addr)) {
         } else {
-            epd->timeout_ptr = add_timeout(epd, 5, connect_timeout_handle);
-            se_dns_query(loop_fd, host, be_dns_query, epd);
+            //epd->timeout_ptr = add_timeout(epd, timeout, connect_timeout_handle);
+            epd->loop_fd = loop_fd;
+            se_dns_query(loop_fd, host, timeout, be_dns_query, epd);
             return 1;
         }
     }
