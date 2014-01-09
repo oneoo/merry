@@ -23,6 +23,15 @@
                (l==DEBUG?"DEBUG":(l==INFO?"INFO":(l==NOTICE?"NOTICE":(l==WARN?"WARN":(l==ALERT?"ALERT":"ERR"))))), \
                ##__VA_ARGS__)
 
+#define _LOGF(l,f,a,...) if(l>=LOG_LEVEL&&((is_daemon==1||printf("%s%s [%d-%s] %s " a "%s", \
+                            (l==DEBUG?"\x1b[0m":(l==INFO?"\x1b[32m":(l==NOTICE?"\x1b[34m":(l==WARN?"\x1b[33m":(l==ALERT?"\x1b[35m":"\x1b[31m"))))), \
+                            now_lc, pid, f, \
+                            (l==DEBUG?"DEBUG":(l==INFO?"INFO":(l==NOTICE?"NOTICE":(l==WARN?"WARN":(l==ALERT?"ALERT":"ERR"))))), \
+                            ##__VA_ARGS__, "\x1b[0m\n") ))&&LOG_FD>-1) \
+    log_writef("%s [%d-%s] %s "a"\n", now_lc, pid, f, \
+               (l==DEBUG?"DEBUG":(l==INFO?"INFO":(l==NOTICE?"NOTICE":(l==WARN?"WARN":(l==ALERT?"ALERT":"ERR"))))), \
+               ##__VA_ARGS__)
+
 int open_log(const char *fn, int sz);
 void log_destory();
 int log_writef(const char *fmt, ...);

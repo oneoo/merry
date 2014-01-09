@@ -10,7 +10,6 @@
 #define base64_decoded_length(len) (((len + 3) / 4) * 3)
 int base64_encode(unsigned char *dst, const unsigned char *src, int len);
 int base64_decode(unsigned char *dst, const unsigned char *src, size_t slen);
-int base64_decode_url(unsigned char *dst, const unsigned char *src,
-                      size_t slen);
+int base64_decode_url(unsigned char *dst, const unsigned char *src, size_t slen);
 
 #endif

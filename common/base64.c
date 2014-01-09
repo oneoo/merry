@@ -1,7 +1,6 @@
 #include "base64.h"
 
-static char basis64[] =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static char basis64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 int base64_encode(unsigned char *dst, const unsigned char *src, int len)
 {
@@ -37,8 +36,7 @@ int base64_encode(unsigned char *dst, const unsigned char *src, int len)
     return d - dst;
 }
 
-int base64_decode_internal(unsigned char *dst, const unsigned char *src,
-                           size_t slen, const unsigned char *basis)
+int base64_decode_internal(unsigned char *dst, const unsigned char *src, size_t slen, const unsigned char *basis)
 {
     size_t len;
     unsigned char *d;

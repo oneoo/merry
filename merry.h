@@ -19,6 +19,8 @@
 #include "common/base64.h"
 #include "common/urlcoder.h"
 #include "common/strings.h"
+#include "common/md5.h"
+#include "common/sha1.h"
 #include "common/mime.h"
 #include "se/se.h"
 

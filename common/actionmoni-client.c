@@ -7,8 +7,8 @@
     actionmoni_counts("aaa", 10); //aaa+ 10
     actionmoni_ts("bbb", 10); // 10ms
     actionmoni_multi(3, // n of actions
-        AC_NODE_ADD, "aaa", 
-        AC_NODE_ADD_CS, "aaa", 10, 
+        AC_NODE_ADD, "aaa",
+        AC_NODE_ADD_CS, "aaa", 10,
         100+10, "bbb"
     );
     exit(0);
@@ -184,7 +184,7 @@ int actionmoni_set_keys(const char *_keys, int _len)
 
     memcpy(buf_4096 + len, _keys, _len);
     len += _len;
-printf("%d %s\n", actionmoni_fd, buf_4096+9);
+    printf("%d %s\n", actionmoni_fd, buf_4096 + 9);
     return actionmoni_fd > -1
            && sendto(actionmoni_fd, buf_4096, len, 0, (struct sockaddr *)&servaddr, sizeof(servaddr));
 }

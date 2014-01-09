@@ -3,13 +3,14 @@
 #include "times.h"
 
 int LOG_FD = -1;
-int LOG_LEVEL = WARN;
+int LOG_LEVEL = NOTICE;
 
 shm_t *_shm_log_buf = NULL;
 char *log_buf = NULL;
 long *log_buf_len = NULL;
 char _inner_log_buf[4096] = {0};
 int _inner_log_buf_len = 0;
+static int log_buf_size = 0;
 
 extern time_t now;
 extern struct tm _now_gtm;
@@ -23,6 +24,10 @@ int open_log(const char *fn, int sz)
 {
     if(!fn) {
         return -1;
+    }
+
+    if(LOG_FD > -1) {
+        return LOG_FD;
     }
 
     char *p = strstr(fn, ",");
@@ -66,12 +71,13 @@ int open_log(const char *fn, int sz)
     }
 
     if(LOG_FD > -1 && !_shm_log_buf) {
-        _shm_log_buf = shm_malloc(40960 + 4);
+        _shm_log_buf = shm_malloc(sz + 4);
 
         if(_shm_log_buf) {
-            log_buf_len = _shm_log_buf->p + 40960;
+            log_buf_len = _shm_log_buf->p + sz;
             *log_buf_len = 0;
             log_buf = _shm_log_buf->p;
+            log_buf_size = sz > 4096 ? sz : 4096;
         }
     }
 
@@ -98,7 +104,7 @@ void copy_buf_to_shm_log_buf()
 
     shm_lock(_shm_log_buf);
 
-    if((*log_buf_len) + _inner_log_buf_len > 40960) {
+    if((*log_buf_len) + _inner_log_buf_len > log_buf_size) {
         write(LOG_FD, log_buf, *log_buf_len);
         *log_buf_len = 0;
     }
