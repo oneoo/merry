@@ -22,7 +22,16 @@ static int be_accept_f(se_ptr_t *ptr)
     socklen_t addr_len = sizeof(struct sockaddr_in);
 
     while(acc_trys++ < 3) {
-        client_fd = accept(_server_fd, (struct sockaddr *) &remote_addr, &addr_len);
+#ifdef __GLIBC_PREREQ(2,10)
+        client_fd = accept4(server_fd, (struct sockaddr *)&remote_addr, &addr_len, SOCK_NONBLOCK);
+
+        if(errno == ENOSYS) {
+            client_fd = accept(server_fd, (struct sockaddr *) &remote_addr, &addr_len);
+        }
+
+#else
+        client_fd = accept(server_fd, (struct sockaddr *) &remote_addr, &addr_len);
+#endif
 
         if(client_fd < 0 && errno != EAGAIN && errno != EWOULDBLOCK) {
             break;
