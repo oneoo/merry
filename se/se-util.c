@@ -22,7 +22,7 @@ static int be_accept_f(se_ptr_t *ptr)
     socklen_t addr_len = sizeof(struct sockaddr_in);
 
     while(acc_trys++ < 3) {
-#ifdef __GLIBC_PREREQ(2,10)
+#if __GLIBC_PREREQ(2,10)
         client_fd = accept4(server_fd, (struct sockaddr *)&remote_addr, &addr_len, SOCK_NONBLOCK);
 
         if(errno == ENOSYS) {
