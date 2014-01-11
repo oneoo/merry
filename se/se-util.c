@@ -15,6 +15,12 @@ static int dns_cache_ttl = 180;
 
 int se_errno = 0;
 
+#if defined(__GLIBC__) && defined(__GLIBC_PREREQ)
+#if __GLIBC_PREREQ(2, 12)
+#define HAVE_ACCPEPT4 1
+#endif
+#endif
+
 static int be_accept_f(se_ptr_t *ptr)
 {
     int acc_trys = 0, client_fd = -1;
@@ -22,7 +28,7 @@ static int be_accept_f(se_ptr_t *ptr)
     socklen_t addr_len = sizeof(struct sockaddr_in);
 
     while(acc_trys++ < 3) {
-#if __GLIBC_PREREQ(2,10)
+#ifdef HAVE_ACCPEPT4
         client_fd = accept4(server_fd, (struct sockaddr *)&remote_addr, &addr_len, SOCK_NONBLOCK);
 
         if(errno == ENOSYS) {
