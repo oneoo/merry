@@ -72,9 +72,6 @@ int merry_start(int argc, const char **argv, void (*help)(), void (*master)(),
         }
     }
 
-    /// 设置进程归属用户，默认 nobody
-    set_process_user(/*user*/ NULL, /*group*/ NULL);
-
     /// 进入主进程处理
     start_master_main(master, onexit);
 

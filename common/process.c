@@ -122,16 +122,23 @@ char *init_process_title(int argc, const char **argv)
 #endif
     i = n;
 
-    while(n > 1) if(process_chdir[n--] == '/') {
-            strncpy(process_name, ((char *) process_chdir) + n + 2, i - n);
+    int cped = 0;
+
+    while(n > 1) {
+        if(process_chdir[n--] == '/') {
+            if(cped++ == 0) {
+                strncpy(process_name, ((char *) process_chdir) + n + 2, i - n);
+            }
 
             if(process_chdir[n] == '.') {
                 n--;
+                continue;
             }
 
-            process_chdir[n + 1] = '\0';
+            process_chdir[n + 2] = '\0';
             break;
         }
+    }
 
     n = chdir(process_chdir);
 

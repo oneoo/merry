@@ -10,9 +10,10 @@ shm_t *shm_malloc(size_t size)
     union semun arg;
 
     /* create and init a shared memory segment for the counter */
-    oflag = 0666 | IPC_CREAT;
+    oflag = 0600 | IPC_CREAT;
 
     if((shm_id = shmget(ftok(process_chdir, shm_ftok_id), size, oflag)) < 0) {
+        perror("shmget error\n");
         return NULL;
     }
 
@@ -22,10 +23,12 @@ shm_t *shm_malloc(size_t size)
         return NULL;
     }
 
-    /* create and init the semaphore that will protect the counter */
-    oflag = 0666 | IPC_CREAT;
-
     if((sem_id = semget(ftok(process_chdir, shm_ftok_id), 1, oflag)) < 0) {
+        if(shmctl(shm_id, IPC_RMID, NULL) == -1) {
+            perror("shmctl del error\n");
+        }
+
+        perror("semget error\n");
         return NULL;
     }
 
@@ -51,17 +54,13 @@ void shm_free(shm_t *shm)
         return;
     }
 
-    union semun arg;
-
-    arg.val = 1; /* binary semaphore */
-
-    /* remove the semaphore and shm segment */
-    if(semctl(shm->sem_id, 0, IPC_RMID, arg) < 0) {
-        return;
+    if(shmctl(shm->shm_id, IPC_RMID, NULL) == -1) {
+        perror("shmctl del error\n");
     }
 
-    if(shmctl(shm->shm_id, IPC_RMID, NULL) < 0) {
-        return;
+    /* remove the semaphore and shm segment */
+    if(semctl(shm->sem_id, 1, IPC_RMID, 0) == -1) {
+        perror("semctl del error\n");
     }
 
     free(shm);
