@@ -12,6 +12,8 @@ int pid = -1;
 int server_fd = 0;
 int loop_fd = 0;
 
+extern logf_t *LOGF_T;
+
 static const char *process_char_last;
 
 static char buf_4096[4096] = {0};
@@ -225,15 +227,14 @@ static void (*on_worker_exit_func)() = NULL;
 static void on_process_exit_handler(int sig, siginfo_t *info, void *secret)
 {
     if(on_worker_exit_func) {
-        copy_buf_to_shm_log_buf();
+        copy_buf_to_shm_log_buf(LOGF_T);
         on_worker_exit_func();
-        copy_buf_to_shm_log_buf();
+        copy_buf_to_shm_log_buf(LOGF_T);
     }
 
     if(on_master_exit_func) {
-        sync_logs();
         on_master_exit_func();
-        log_destory();
+        log_destory(LOGF_T);
     }
 
     exit(0);
@@ -338,7 +339,7 @@ void start_master_main(void (*func)(), void (*onexit)())
                 onexit();
             }
 
-            log_destory();
+            log_destory(LOGF_T);
 
             exit(0);
 
@@ -374,7 +375,7 @@ void wait_for_child_process_exit()
         sleep(1);
     }
 
-    log_destory();
+    log_destory(LOGF_T);
 }
 
 void set_process_user(const char *user, const char *group)

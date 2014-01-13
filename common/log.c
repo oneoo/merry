@@ -1,16 +1,8 @@
 #include "log.h"
-#include "shm.h"
 #include "times.h"
-
-int LOG_FD = -1;
+#include <errno.h>
+logf_t *LOGF_T = NULL;
 int LOG_LEVEL = NOTICE;
-
-shm_t *_shm_log_buf = NULL;
-char *log_buf = NULL;
-long *log_buf_len = NULL;
-char _inner_log_buf[4096] = {0};
-int _inner_log_buf_len = 0;
-static int log_buf_size = 0;
 
 extern time_t now;
 extern struct tm _now_gtm;
@@ -18,16 +10,15 @@ extern struct tm _now_lc;
 extern char now_gmt[32];
 extern char now_lc[32];
 
+extern int is_daemon;
+extern int pid;
+
 static char buf_4096[4096] = {0};
 
-int open_log(const char *fn, int sz)
+logf_t *open_log(const char *fn, int sz)
 {
     if(!fn) {
-        return -1;
-    }
-
-    if(LOG_FD > -1) {
-        return LOG_FD;
+        return NULL;
     }
 
     char *p = strstr(fn, ",");
@@ -63,63 +54,77 @@ int open_log(const char *fn, int sz)
     }
 
     if(!fn || strlen(fn) < 1) {
-        return -1;
+        return NULL;
     }
 
-    if(LOG_FD < 0) {
-        LOG_FD = open(fn, O_APPEND | O_CREAT | O_WRONLY, 0644);
-    }
+    int fd = open(fn, O_APPEND | O_CREAT | O_WRONLY, 0644);
 
-    if(LOG_FD > -1 && !_shm_log_buf) {
-        _shm_log_buf = shm_malloc(sz + 4);
+    logf_t *_logf = NULL;
 
-        if(_shm_log_buf) {
-            log_buf_len = _shm_log_buf->p + sz;
-            *log_buf_len = 0;
-            log_buf = _shm_log_buf->p;
-            log_buf_size = sz > 4096 ? sz : 4096;
+    if(fd > -1) {
+        _logf = malloc(sizeof(logf_t));
+
+        if(_logf) {
+            memset(_logf, 0, sizeof(logf_t));
+            _logf->LOG_FD = fd;
+            _logf->_shm_log_buf = shm_malloc(sz + 4);
+
+            if(_logf->_shm_log_buf) {
+                _logf->log_buf_len = _logf->_shm_log_buf->p + sz;
+                *(_logf->log_buf_len) = 0;
+                _logf->log_buf = _logf->_shm_log_buf->p;
+                _logf->log_buf_size = sz > 4096 ? sz : 4096;
+
+            } else {
+                LOGF(ERR, "shm_malloc error (%s)", strerror(errno));
+                free(_logf);
+                _logf = NULL;
+            }
         }
     }
 
-    return LOG_FD;
+    return _logf;
 }
 
-void log_destory()
+void log_destory(logf_t *_logf)
 {
-    sync_logs();
-    shm_free(_shm_log_buf);
-    _shm_log_buf = NULL;
-
-    if(LOG_FD != -1) {
-        close(LOG_FD);
-        LOG_FD = -1;
-    }
-}
-
-void copy_buf_to_shm_log_buf()
-{
-    if(_inner_log_buf_len < 1) {
+    if(!_logf) {
         return;
     }
 
-    shm_lock(_shm_log_buf);
+    sync_logs(_logf);
+    shm_free(_logf->_shm_log_buf);
+    _logf->_shm_log_buf = NULL;
 
-    if((*log_buf_len) + _inner_log_buf_len > log_buf_size) {
-        write(LOG_FD, log_buf, *log_buf_len);
-        *log_buf_len = 0;
+    if(_logf->LOG_FD != -1) {
+        close(_logf->LOG_FD);
+        _logf->LOG_FD = -1;
     }
-
-    memcpy(log_buf + (*log_buf_len), _inner_log_buf, _inner_log_buf_len);
-    *log_buf_len = (*log_buf_len) + _inner_log_buf_len;
-    shm_unlock(_shm_log_buf);
-
-    _inner_log_buf_len = 0;
 }
 
-long last_wtime = 0;
-int log_writef(const char *fmt, ...)
+void copy_buf_to_shm_log_buf(logf_t *_logf)
 {
-    if(LOG_FD == -1) {
+    if(!_logf || _logf->_inner_log_buf_len < 1) {
+        return;
+    }
+
+    shm_lock(_logf->_shm_log_buf);
+
+    if(*(_logf->log_buf_len) + _logf->_inner_log_buf_len > _logf->log_buf_size) {
+        write(_logf->LOG_FD, _logf->log_buf, *(_logf->log_buf_len));
+        *(_logf->log_buf_len) = 0;
+    }
+
+    memcpy(_logf->log_buf + (*_logf->log_buf_len), _logf->_inner_log_buf, _logf->_inner_log_buf_len);
+    *(_logf->log_buf_len) += _logf->_inner_log_buf_len;
+    shm_unlock(_logf->_shm_log_buf);
+
+    _logf->_inner_log_buf_len = 0;
+}
+
+int log_writef(logf_t *_logf, const char *fmt, ...)
+{
+    if(!_logf || _logf->LOG_FD == -1) {
         return 0;
     }
 
@@ -130,29 +135,29 @@ int log_writef(const char *fmt, ...)
 
     update_time();
 
-    if(now > last_wtime || _inner_log_buf_len + n > 4096) {
-        last_wtime = now;
-        copy_buf_to_shm_log_buf();
+    if(now > _logf->last_wtime || _logf->_inner_log_buf_len + n > 4096) {
+        _logf->last_wtime = now;
+        copy_buf_to_shm_log_buf(_logf);
     }
 
-    memcpy(_inner_log_buf + _inner_log_buf_len, buf_4096, n);
-    _inner_log_buf_len += n;
+    memcpy(_logf->_inner_log_buf + _logf->_inner_log_buf_len, buf_4096, n);
+    _logf->_inner_log_buf_len += n;
 
     return n;
 }
 
-int sync_logs()
+int sync_logs(logf_t *_logf)
 {
-    if(LOG_FD == -1) {
+    if(!_logf || _logf->LOG_FD == -1) {
         return 0;
     }
 
-    copy_buf_to_shm_log_buf();
+    copy_buf_to_shm_log_buf(_logf);
     int n = 0;
 
-    if(*log_buf_len > 0) {
-        n = write(LOG_FD, log_buf, *log_buf_len);
-        *log_buf_len = 0;
+    if(*_logf->log_buf_len > 0) {
+        n = write(_logf->LOG_FD, _logf->log_buf, *_logf->log_buf_len);
+        *_logf->log_buf_len = 0;
     }
 
     return n;

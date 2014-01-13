@@ -39,10 +39,8 @@ extern struct tm _now_lc;
 extern char now_gmt[32];
 extern char now_lc[32];
 
-extern int LOG_FD;
+extern logf_t *LOGF_T;
 extern int LOG_LEVEL;
-extern char *log_buf;
-extern long *log_buf_len;
 
 extern char hostname[1024];
 extern char process_chdir[924];

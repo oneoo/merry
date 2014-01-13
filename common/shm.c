@@ -2,7 +2,7 @@
 
 extern char process_chdir[924];
 extern int is_daemon;
-static int shm_ftok_id = 0;
+static int shm_ftok_id = 1;
 
 shm_t *shm_malloc(size_t size)
 {
