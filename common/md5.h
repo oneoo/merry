@@ -47,6 +47,6 @@ typedef struct MD5Context {
 void MD5Init(MD5_CTX *);
 void MD5Update(MD5_CTX *, const unsigned char *, unsigned int);
 void MD5Final(unsigned char [16], MD5_CTX *);
-void md5(const unsigned char *data, size_t len, unsigned char *hex);
+void md5(const unsigned char *data, size_t len, char *hex);
 
 #endif /* _MD5_H_ */

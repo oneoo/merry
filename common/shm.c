@@ -1,4 +1,5 @@
 #include "shm.h"
+#include <stdio.h>
 
 extern char process_chdir[924];
 extern int is_daemon;

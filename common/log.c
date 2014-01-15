@@ -22,6 +22,7 @@ logf_t *open_log(const char *fn, int sz)
     }
 
     char *p = strstr(fn, ",");
+    char oldc = 0;
 
     if(p) {
         if(strstr(p, "DEBUG")) {
@@ -50,14 +51,17 @@ logf_t *open_log(const char *fn, int sz)
             }
         }
 
+        oldc = p[0];
         p[0] = '\0';
     }
 
     if(!fn || strlen(fn) < 1) {
+        p[0] = oldc;
         return NULL;
     }
 
     int fd = open(fn, O_APPEND | O_CREAT | O_WRONLY, 0644);
+    p[0] = oldc;
 
     logf_t *_logf = NULL;
 

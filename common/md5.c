@@ -325,9 +325,9 @@ const unsigned char block[64];
     memset((void *)x, 0, sizeof(x));
 }
 
-void md5(const unsigned char *data, size_t len, unsigned char *hex)
+void md5(const unsigned char *data, size_t len, char *hex)
 {
-    MD5_CTX md5context = {0};
+    MD5_CTX md5context;
     unsigned char digest[16] = {0};
 
     MD5Init(&md5context);

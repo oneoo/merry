@@ -57,7 +57,7 @@ extern char bind_addr[20];
 extern int bind_port;
 extern const char *program_name;
 
-int merry_start(int argc, const char **argv, void (*help)(), void (*master)(),
-                void (*onexit)(), void (*worker)());
+int merry_start(int argc, const char **argv, void (*help)(), void (*master)(), void (*onexit)(), void (*worker)(),
+                int worker_count);
 
 #endif

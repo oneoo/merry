@@ -4,8 +4,8 @@ char bind_addr[20] = {0};
 int bind_port = 1111;
 const char *program_name = NULL;
 
-int merry_start(int argc, const char **argv, void (*help)(), void (*master)(),
-                void (*onexit)(), void (*worker)())
+int merry_start(int argc, const char **argv, void (*help)(), void (*master)(), void (*onexit)(), void (*worker)(),
+                int worker_count)
 {
     update_time();
 
@@ -40,6 +40,10 @@ int merry_start(int argc, const char **argv, void (*help)(), void (*master)(),
         if(process_count < 1) {
             process_count = get_cpu_num();
         }
+    }
+
+    if(worker_count > 0 && process_count > worker_count) {
+        process_count = worker_count;
     }
 
     sprintf(bind_addr, "0.0.0.0");
