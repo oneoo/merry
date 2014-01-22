@@ -1,3 +1,11 @@
+#if defined(__GLIBC__) && defined(__GLIBC_PREREQ)
+#if __GLIBC_PREREQ(2, 12)
+#define _GNU_SOURCE
+#include <sys/socket.h>
+#define HAVE_ACCPEPT4 1
+#endif
+#endif
+
 #include <netdb.h>
 #include <sys/ioctl.h>
 #ifdef linux

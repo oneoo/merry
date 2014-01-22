@@ -15,12 +15,6 @@ static int dns_cache_ttl = 180;
 
 int se_errno = 0;
 
-#if defined(__GLIBC__) && defined(__GLIBC_PREREQ)
-#if __GLIBC_PREREQ(2, 12)
-#define HAVE_ACCPEPT4 1
-#endif
-#endif
-
 static int be_accept_f(se_ptr_t *ptr)
 {
     int acc_trys = 0, client_fd = -1;
