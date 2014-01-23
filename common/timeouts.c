@@ -43,15 +43,27 @@ timeout_t *add_timeout(void *ptr, int timeout, timeout_handle_cb handle)
 int check_timeouts()
 {
     int k = now % TIMEOUTS_LINK_RING_SIZE;
+    timeout_t *m = NULL, *n = NULL;
+    int b = 1;
 
-    timeout_t *m = timeout_links[k], *n = NULL;
+    while(1) {
+        b = 1;
+        m = timeout_links[k];
+        n = NULL;
 
-    while(m) {
-        n = m;
-        m = m->next;
+        while(m) {
+            n = m;
+            m = m->next;
 
-        if(now >= n->timeout) {
-            n->handle(n->ptr);
+            if(now >= n->timeout) {
+                n->handle(n->ptr);
+                b = 0;
+                break;
+            }
+        }
+
+        if(b) {
+            break;
         }
     }
 
