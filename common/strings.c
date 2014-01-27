@@ -124,7 +124,7 @@ char *_ltostr(char *str, long val, unsigned base)
     r = ldiv(labs(val), base);
 
     if(r.quot > 0) {
-        str = ltostr(str, r.quot, base);
+        str = _ltostr(str, r.quot, base);
     }
 
     *str++ = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ,."[(int)r.rem];

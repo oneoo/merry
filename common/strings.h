@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <time.h>
 #include <sys/timeb.h>
+#include <math.h>
 
 #ifndef _STRINGS_H
 #define _STRINGS_H
