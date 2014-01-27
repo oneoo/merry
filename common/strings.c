@@ -94,3 +94,40 @@ void random_string(char *string, size_t length, int s)
         j = rand();
     }
 }
+
+unsigned long _strtol(char *str62, int base)
+{
+    int i, j, nResult = 0;
+
+    for(i = 0; i < strlen(str62); i++) {
+        j = str62[i] == ',' ? 62 : (str62[i] == '.' ? 63 : (str62[i] <= '9' ? str62[i] - '0' :
+                                    (str62[i] <= 'Z' ? 36 + str62[i] - 'A' : 10 + str62[i] - 'a')));
+        nResult += pow(base, (strlen(str62) - i - 1)) * j ;
+    }
+
+    return nResult;
+}
+
+char *_ltostr(char *str, long val, unsigned base)
+{
+    ldiv_t r;
+
+    if(base > 64) {//36
+        str = '\0';
+        return str;
+    }
+
+    if(val < 0) {
+        *str++ = '-';
+    }
+
+    r = ldiv(labs(val), base);
+
+    if(r.quot > 0) {
+        str = ltostr(str, r.quot, base);
+    }
+
+    *str++ = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ,."[(int)r.rem];
+    *str   = '\0';
+    return str;
+}
