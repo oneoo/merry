@@ -5,6 +5,7 @@
 #include <math.h>
 #include <inttypes.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <errno.h>
 #include <signal.h>
 
@@ -23,6 +24,7 @@
 #include "common/strings.h"
 #include "common/md5.h"
 #include "common/sha1.h"
+#include "common/sha256.h"
 #include "common/mime.h"
 #include "se/se.h"
 
