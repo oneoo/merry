@@ -100,6 +100,10 @@ unsigned long _strtol(char *str62, int base)
     int i, j, nResult = 0;
 
     for(i = 0; i < strlen(str62); i++) {
+        if(str62[i] == '\r' || str62[i] == '\n' || str62[i] == '\t' || str62[i] == ' ' || str62[i] == ';') {
+            break;
+        }
+
         j = str62[i] == ',' ? 62 : (str62[i] == '.' ? 63 : (str62[i] <= '9' ? str62[i] - '0' :
                                     (str62[i] <= 'Z' ? 36 + str62[i] - 'A' : 10 + str62[i] - 'a')));
         nResult += pow(base, (strlen(str62) - i - 1)) * j ;
@@ -131,3 +135,49 @@ char *_ltostr(char *str, long val, unsigned base)
     *str   = '\0';
     return str;
 }
+
+char *strsplit(void *string_org, int org_len, const char *demial, char **last, int *len)
+{
+    unsigned char *str;
+    unsigned char *p;
+
+    if(*last) {
+        if(*last == string_org) {
+            return NULL;
+        }
+
+        str = (unsigned char *)*last;
+
+    } else {
+        str = (unsigned char *)string_org;
+    }
+
+    if(!str) {
+        return (char *)str;
+    }
+
+    p = str;
+
+    while(p < (unsigned char *)string_org + org_len && *p != demial[0]) {
+        p++;
+    }
+
+    if(*p && p < (unsigned char *)string_org + org_len) {
+        *last = (char *)p + 1;
+
+    } else {
+        *last = string_org;
+    }
+
+    if(str) {
+        if(*last != string_org) {
+            *len = (*last - (char *)str) - 1;
+
+        } else {
+            *len = (unsigned char *)(string_org + org_len) - str;
+        }
+    }
+
+    return (char *)str;
+}
+

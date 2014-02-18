@@ -49,8 +49,7 @@ extern "C" {
 /**
  * \brief          SHA-256 context structure
  */
-typedef struct
-{
+typedef struct {
     uint32_t total[2];          /*!< number of bytes processed  */
     uint32_t state[8];          /*!< intermediate digest state  */
     unsigned char buffer[64];   /*!< data block being processed */
@@ -67,7 +66,7 @@ sha256_context;
  * \param ctx      context to be initialized
  * \param is224    0 = use SHA256, 1 = use SHA224
  */
-void sha256_starts( sha256_context *ctx, int is224 );
+void sha256_starts(sha256_context *ctx, int is224);
 
 /**
  * \brief          SHA-256 process buffer
@@ -76,7 +75,7 @@ void sha256_starts( sha256_context *ctx, int is224 );
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
  */
-void sha256_update( sha256_context *ctx, const unsigned char *input, size_t ilen );
+void sha256_update(sha256_context *ctx, const unsigned char *input, size_t ilen);
 
 /**
  * \brief          SHA-256 final digest
@@ -84,10 +83,10 @@ void sha256_update( sha256_context *ctx, const unsigned char *input, size_t ilen
  * \param ctx      SHA-256 context
  * \param output   SHA-224/256 checksum result
  */
-void sha256_finish( sha256_context *ctx, unsigned char output[32] );
+void sha256_finish(sha256_context *ctx, unsigned char output[32]);
 
 /* Internal use */
-void sha256_process( sha256_context *ctx, const unsigned char data[64] );
+void sha256_process(sha256_context *ctx, const unsigned char data[64]);
 
 #ifdef __cplusplus
 }
@@ -109,8 +108,8 @@ extern "C" {
  * \param output   SHA-224/256 checksum result
  * \param is224    0 = use SHA256, 1 = use SHA224
  */
-void sha256( const unsigned char *input, size_t ilen,
-           unsigned char output[32], int is224 );
+void sha256(const unsigned char *input, size_t ilen,
+            unsigned char output[32], int is224);
 
 /**
  * \brief          Output = SHA-256( file contents )
@@ -121,7 +120,7 @@ void sha256( const unsigned char *input, size_t ilen,
  *
  * \return         0 if successful, or POLARSSL_ERR_SHA256_FILE_IO_ERROR
  */
-int sha256_file( const char *path, unsigned char output[32], int is224 );
+int sha256_file(const char *path, unsigned char output[32], int is224);
 
 /**
  * \brief          SHA-256 HMAC context setup
@@ -131,8 +130,8 @@ int sha256_file( const char *path, unsigned char output[32], int is224 );
  * \param keylen   length of the HMAC key
  * \param is224    0 = use SHA256, 1 = use SHA224
  */
-void sha256_hmac_starts( sha256_context *ctx, const unsigned char *key,
-                         size_t keylen, int is224 );
+void sha256_hmac_starts(sha256_context *ctx, const unsigned char *key,
+                        size_t keylen, int is224);
 
 /**
  * \brief          SHA-256 HMAC process buffer
@@ -141,7 +140,7 @@ void sha256_hmac_starts( sha256_context *ctx, const unsigned char *key,
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
  */
-void sha256_hmac_update( sha256_context *ctx, const unsigned char *input, size_t ilen );
+void sha256_hmac_update(sha256_context *ctx, const unsigned char *input, size_t ilen);
 
 /**
  * \brief          SHA-256 HMAC final digest
@@ -149,14 +148,14 @@ void sha256_hmac_update( sha256_context *ctx, const unsigned char *input, size_t
  * \param ctx      HMAC context
  * \param output   SHA-224/256 HMAC checksum result
  */
-void sha256_hmac_finish( sha256_context *ctx, unsigned char output[32] );
+void sha256_hmac_finish(sha256_context *ctx, unsigned char output[32]);
 
 /**
  * \brief          SHA-256 HMAC context reset
  *
  * \param ctx      HMAC context to be reset
  */
-void sha256_hmac_reset( sha256_context *ctx );
+void sha256_hmac_reset(sha256_context *ctx);
 
 /**
  * \brief          Output = HMAC-SHA-256( hmac key, input buffer )
@@ -168,16 +167,16 @@ void sha256_hmac_reset( sha256_context *ctx );
  * \param output   HMAC-SHA-224/256 result
  * \param is224    0 = use SHA256, 1 = use SHA224
  */
-void sha256_hmac( const unsigned char *key, size_t keylen,
-                  const unsigned char *input, size_t ilen,
-                  unsigned char output[32], int is224 );
+void sha256_hmac(const unsigned char *key, size_t keylen,
+                 const unsigned char *input, size_t ilen,
+                 unsigned char output[32], int is224);
 
 /**
  * \brief          Checkup routine
  *
  * \return         0 if successful, or 1 if the test failed
  */
-int sha256_self_test( int verbose );
+int sha256_self_test(int verbose);
 
 #ifdef __cplusplus
 }

@@ -49,8 +49,8 @@ CRC32           0.43 GB/s     9
 MD5-32          0.33 GB/s    10       Ronald L. Rivest
 SHA1-32         0.28 GB/s    10
 
-Q.Score is a measure of quality of the hash function. 
-It depends on successfully passing SMHasher test set. 
+Q.Score is a measure of quality of the hash function.
+It depends on successfully passing SMHasher test set.
 10 is a perfect score.
 */
 
@@ -64,7 +64,10 @@ extern "C" {
 //****************************
 // Type
 //****************************
-typedef enum { XXH_OK=0, XXH_ERROR } XXH_errorcode;
+typedef enum {
+    XXH_OK = 0, XXH_ERROR
+}
+XXH_errorcode;
 
 
 
@@ -72,7 +75,7 @@ typedef enum { XXH_OK=0, XXH_ERROR } XXH_errorcode;
 // Simple Hash Functions
 //****************************
 
-unsigned int XXH32 (const void* input, int len, unsigned int seed);
+unsigned int XXH32(const void *input, int len, unsigned int seed);
 
 /*
 XXH32() :
@@ -91,9 +94,9 @@ XXH32() :
 // Advanced Hash Functions
 //****************************
 
-void*         XXH32_init   (unsigned int seed);
-XXH_errorcode XXH32_update (void* state, const void* input, int len);
-unsigned int  XXH32_digest (void* state);
+void         *XXH32_init(unsigned int seed);
+XXH_errorcode XXH32_update(void *state, const void *input, int len);
+unsigned int  XXH32_digest(void *state);
 
 /*
 These functions calculate the xxhash of an input provided in several small packets,
@@ -107,8 +110,8 @@ This pointer must be provided as "void* state" parameter for XXH32_update().
 XXH32_update() can be called as many times as necessary.
 The user must provide a valid (allocated) input.
 The function returns an error code, with 0 meaning OK, and any other value meaning there is an error.
-Note that "len" is type "int", which means it is limited to 2^31-1. 
-If your data is larger, it is recommended to chunk your data into blocks 
+Note that "len" is type "int", which means it is limited to 2^31-1.
+If your data is larger, it is recommended to chunk your data into blocks
 of size for example 2^30 (1GB) to avoid any "int" overflow issue.
 
 Finally, you can end the calculation anytime, by using XXH32_digest().
@@ -119,10 +122,12 @@ Memory will be freed by XXH32_digest().
 
 
 int           XXH32_sizeofState();
-XXH_errorcode XXH32_resetState(void* state, unsigned int seed);
+XXH_errorcode XXH32_resetState(void *state, unsigned int seed);
 
 #define       XXH32_SIZEOFSTATE 48
-typedef struct { long long ll[(XXH32_SIZEOFSTATE+(sizeof(long long)-1))/sizeof(long long)]; } XXH32_stateSpace_t;
+typedef struct {
+    long long ll[(XXH32_SIZEOFSTATE + (sizeof(long long) - 1)) / sizeof(long long)];
+} XXH32_stateSpace_t;
 /*
 These functions allow user application to make its own allocation for state.
 
@@ -135,7 +140,7 @@ use the structure XXH32_stateSpace_t, which will ensure that memory space is lar
 */
 
 
-unsigned int XXH32_intermediateDigest (void* state);
+unsigned int XXH32_intermediateDigest(void *state);
 /*
 This function does the same as XXH32_digest(), generating a 32-bit hash,
 but preserve memory context.
