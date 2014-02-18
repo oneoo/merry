@@ -95,18 +95,25 @@ void random_string(char *string, size_t length, int s)
     }
 }
 
-unsigned long _strtol(char *str62, int base)
+unsigned long _strtol(char *str64, int base)
 {
     int i, j, nResult = 0;
+    char _t[32] = {0};
 
-    for(i = 0; i < strlen(str62); i++) {
-        if(str62[i] == '\r' || str62[i] == '\n' || str62[i] == '\t' || str62[i] == ' ' || str62[i] == ';') {
+    for(i = 0; i < strlen(str64); i++) {
+        if(str64[i] == '\r' || str64[i] == '\n' || str64[i] == '\t' || str64[i] == ' ' || str64[i] == ';') {
             break;
         }
 
-        j = str62[i] == ',' ? 62 : (str62[i] == '.' ? 63 : (str62[i] <= '9' ? str62[i] - '0' :
-                                    (str62[i] <= 'Z' ? 36 + str62[i] - 'A' : 10 + str62[i] - 'a')));
-        nResult += pow(base, (strlen(str62) - i - 1)) * j ;
+        _t[i] = str64[i];
+    }
+
+    for(i = 0; i < strlen(_t); i++) {
+
+
+        j = _t[i] == ',' ? 62 : (_t[i] == '.' ? 63 : (_t[i] <= '9' ? _t[i] - '0' :
+                                 (_t[i] <= 'Z' ? 36 + _t[i] - 'A' : 10 + _t[i] - 'a')));
+        nResult += pow(base, (strlen(_t) - i - 1)) * j ;
     }
 
     return nResult;
