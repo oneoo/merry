@@ -148,6 +148,10 @@ char *strsplit(const void *string_org, int org_len, const char *demial, char **l
     unsigned char *str;
     unsigned char *p;
 
+    if(org_len < 1 || !string_org || !demial) {
+        return NULL;
+    }
+
     if(*last) {
         if(*last == string_org) {
             *last = NULL;
@@ -170,11 +174,11 @@ char *strsplit(const void *string_org, int org_len, const char *demial, char **l
         p++;
     }
 
-    if(*p && p < (unsigned char *)string_org + org_len) {
-        *last = (char *)p + 1;
+    if(p == (unsigned char *)string_org + org_len) {
+        *last = string_org;
 
     } else {
-        *last = string_org;
+        *last = (char *)p + 1;
     }
 
     if(str) {
