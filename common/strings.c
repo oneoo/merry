@@ -175,7 +175,7 @@ char *strsplit(const void *string_org, int org_len, const char *demial, char **l
     }
 
     if(p == (unsigned char *)string_org + org_len) {
-        *last = string_org;
+        *last = (char *)string_org;
 
     } else {
         *last = (char *)p + 1;
