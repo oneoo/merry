@@ -143,13 +143,14 @@ char *_ltostr(char *str, long val, unsigned base)
     return str;
 }
 
-char *strsplit(void *string_org, int org_len, const char *demial, char **last, int *len)
+char *strsplit(const void *string_org, int org_len, const char *demial, char **last, int *len)
 {
     unsigned char *str;
     unsigned char *p;
 
     if(*last) {
         if(*last == string_org) {
+            *last = NULL;
             return NULL;
         }
 
