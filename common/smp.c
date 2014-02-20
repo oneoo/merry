@@ -30,10 +30,14 @@ typedef struct {
     void *next;
     char f[64];
     unsigned int l;
+    char f2[64];
+    unsigned int l2;
     void *p;
 } smp_link_t;
 
 static void *smp_link[32] = {0};
+static char old_f[64] = {0};
+static int old_l = 0;
 
 static void add_to_smp_link(void *p, int s, char *f, int l)
 {
@@ -63,6 +67,16 @@ static void add_to_smp_link(void *p, int s, char *f, int l)
 
     memcpy(n->f, f + fs, fl);
     n->f[fl] = '\0';
+
+    if(!old_l) {
+        memcpy(n->f2, f + fs, fl);
+        n->f2[fl] = '\0';
+        n->l2 = l;
+
+    } else {
+        memcpy(n->f2, old_f, strlen(old_f));
+        n->l2 = old_l;
+    }
 
     if(!smp_link[s % 32]) {
         smp_link[s % 32] = n;
@@ -132,7 +146,7 @@ void dump_smp_link()
         smp_link_t *n = smp_link[i];
 
         while(n) {
-            printf("%s:%d %p\n", n->f, n->l, n->p);
+            printf("%s:%d %s:%d %p\n", n->f2, n->l2, n->f, n->l, n->p);
             n = n->next;
         }
     }
@@ -188,6 +202,7 @@ void *smp_malloc(unsigned int size)
 void *_smp_malloc(unsigned int size, char *f, int l)
 {
     void *r = smp_malloc(size);
+    old_l = 0;
     add_to_smp_link(r, size > MAX_SMP_SIZE ? 0 : size, f, l);
     return r;
 }
@@ -235,6 +250,33 @@ void *smp_realloc(void *p, unsigned int _size)
 
 void *_smp_realloc(void *p, unsigned int size, char *f, int l)
 {
+    old_l = 0;
+    int old_size = 0;
+
+    if(_S_PTR(p - _SSIZE) == 0) {
+        old_size = _I_PTR(p - _I_SSIZE);
+
+    } else {
+        old_size = _S_PTR(p - _SSIZE) * 32;
+    }
+
+    old_size = old_size / 32;
+
+    smp_link_t *n = smp_link[old_size % 32];
+
+    while(n) {
+        if(n->p == p) {
+            memcpy(old_f, n->f2, strlen(n->f2));
+            old_f[strlen(n->f2)] = '\0';
+            old_l = n->l2;
+            break;
+
+        } else {
+            n = n->next;
+        }
+
+    }
+
     void *r = smp_realloc(p, size);
 
     if(r != p) {
