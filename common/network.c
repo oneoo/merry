@@ -116,11 +116,11 @@ char *network_raw_read(int cfd, int *datas_len)
 
     while(1) {
         if(datas == NULL) {
-            datas = (char *) smp_malloc(sizeof(char) * EP_D_BUF_SIZE);
+            datas = (char *) malloc(sizeof(char) * EP_D_BUF_SIZE);
             memset(datas, 0, EP_D_BUF_SIZE);
 
         } else {
-            datas = (char *) smp_realloc(datas, sizeof(char) * (len + EP_D_BUF_SIZE));
+            datas = (char *) realloc(datas, sizeof(char) * (len + EP_D_BUF_SIZE));
             memset(datas + len, 0, EP_D_BUF_SIZE);
         }
 
@@ -143,7 +143,7 @@ char *network_raw_read(int cfd, int *datas_len)
         datas[len - 4] = '\0';
 
     } else {
-        smp_free(datas);
+        free(datas);
         datas = NULL;
         len = 0;
     }

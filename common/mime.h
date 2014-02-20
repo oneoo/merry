@@ -3,6 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "strings.h"
+#include "smp.h"
 
 #ifndef _MIME_H
 #define _MIME_H

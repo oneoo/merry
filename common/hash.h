@@ -1,3 +1,5 @@
+#include "smp.h"
+
 #ifndef _MERRY_HASH_H
 #define _MERRY_HASH_H
 

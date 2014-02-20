@@ -13,7 +13,7 @@ timeout_t *add_timeout(void *ptr, int timeout, timeout_handle_cb handle)
         return NULL;
     }
 
-    timeout_t *n = smp_malloc(sizeof(timeout_t));
+    timeout_t *n = malloc(sizeof(timeout_t));
 
     if(!n) {
         return NULL;
@@ -92,7 +92,7 @@ void delete_timeout(timeout_t *n)
         timeout_link_ends[k] = n->uper;
     }
 
-    smp_free(n);
+    free(n);
 }
 
 void update_timeout(timeout_t *n, int timeout)
@@ -118,7 +118,7 @@ void update_timeout(timeout_t *n, int timeout)
     }
 
     if(timeout < 1) {
-        smp_free(n);
+        free(n);
         return;
     }
 

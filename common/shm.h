@@ -2,6 +2,7 @@
 #include <sys/sem.h>
 #include <sys/shm.h>
 #include <semaphore.h>
+#include "smp.h"
 
 #ifndef __SHM_H
 #define __SHM_H

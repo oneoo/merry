@@ -1,5 +1,4 @@
 #include "smp.h"
-
 /*
 simple memory pool
 */
@@ -25,6 +24,121 @@ static unsigned short link_c[MAX_SMP_SIZE / 32] = {0};
 #define _I_SSIZE (_ISIZE + _SSIZE)
 #define _S_PTR(p) (*(unsigned short *)(p))
 #define _I_PTR(p) (*(unsigned int *)(p))
+
+typedef struct {
+    void *priv;
+    void *next;
+    char f[64];
+    unsigned int l;
+    void *p;
+} smp_link_t;
+
+static void *smp_link[32] = {0};
+
+static void add_to_smp_link(void *p, int s, char *f, int l)
+{
+    if(!p) {
+        return ;
+    }
+
+    if(s % 32 > 0) {
+        s += 32 - (s % 32);
+    }
+
+    s = s / 32;
+
+    smp_link_t *n = malloc(sizeof(smp_link_t));
+    n->priv = NULL;
+    n->next = NULL;
+    n->l = l;
+    n->p = p;
+
+    int fl = strlen(f);
+    int fs = 0;
+
+    if(fl > 63) {
+        fs = fl - 63;
+        fl = 63;
+    }
+
+    memcpy(n->f, f + fs, fl);
+    n->f[fl] = '\0';
+
+    if(!smp_link[s % 32]) {
+        smp_link[s % 32] = n;
+
+    } else {
+        n->next = smp_link[s % 32];
+        ((smp_link_t *)smp_link[s % 32])->priv = n;
+        smp_link[s % 32] = n;
+    }
+}
+
+static void delete_in_smp_link(void *p, int s)
+{
+    if(!p) {
+        return ;
+    }
+
+    if(s % 32 > 0) {
+        s += 32 - (s % 32);
+    }
+
+    s = s / 32;
+
+    smp_link_t *n = smp_link[s % 32];
+
+    while(n) {
+        if(n->p == p) {
+            if(n->priv) {
+                ((smp_link_t *)n->priv)->next = n->next;
+
+                if(n->next) {
+                    ((smp_link_t *)n->next)->priv = n->priv;
+                }
+
+            } else {
+                if(n->next) {
+                    ((smp_link_t *)n->next)->priv = n->priv;
+                    smp_link[s % 32] = n->next;
+
+                } else {
+                    smp_link[s % 32] = NULL;
+                }
+            }
+
+            void *m = n;
+            n = n->next;
+            free(m);
+            return ;
+
+        } else {
+            n = n->next;
+        }
+
+    }
+
+    printf("free error %p\n", p);
+    exit(1);
+}
+
+void dump_smp_link()
+{
+#ifdef SMPDEBUG
+    int i = 0;
+
+    for(i = 0; i < 32; i++) {
+        printf("%d ========================================\n", i * 32);
+        smp_link_t *n = smp_link[i];
+
+        while(n) {
+            printf("%s:%d %p\n", n->f, n->l, n->p);
+            n = n->next;
+        }
+    }
+
+#endif
+}
 
 void *smp_malloc(unsigned int size)
 {
@@ -71,6 +185,13 @@ void *smp_malloc(unsigned int size)
     return p + _SSIZE;
 }
 
+void *_smp_malloc(unsigned int size, char *f, int l)
+{
+    void *r = smp_malloc(size);
+    add_to_smp_link(r, size > MAX_SMP_SIZE ? 0 : size, f, l);
+    return r;
+}
+
 void *smp_realloc(void *p, unsigned int _size)
 {
     if(!p) {
@@ -112,6 +233,17 @@ void *smp_realloc(void *p, unsigned int _size)
     return t;
 }
 
+void *_smp_realloc(void *p, unsigned int size, char *f, int l)
+{
+    void *r = smp_realloc(p, size);
+
+    if(r != p) {
+        add_to_smp_link(r, size > MAX_SMP_SIZE ? 0 : size, f, l);
+    }
+
+    return r;
+}
+
 int smp_free(void *p)
 {
     if(!p) {
@@ -119,13 +251,22 @@ int smp_free(void *p)
     }
 
     if(_S_PTR(p - _SSIZE) == 0) {
+#ifdef SMPDEBUG
+        delete_in_smp_link(p, 0);
+#endif
         free(p - _I_SSIZE);
         return 1;
     }
 
+#ifdef SMPDEBUG
+    void *o = p;
+#endif
     p = p - _SSIZE;
 
     short k = (_S_PTR(p)) % (MAX_SMP_SIZE / 32);
+#ifdef SMPDEBUG
+    delete_in_smp_link(o, (_S_PTR(p)) * 32);
+#endif
 
     if(link_c[k]++ >= MAX_SMP_SIZE / (_S_PTR(p) * 32)) {
         free(p);
@@ -139,40 +280,51 @@ int smp_free(void *p)
     return 1;
 }
 
+int _smp_free(void *p, char *f, int l)
+{
+    return smp_free(p);
+}
+
 #ifdef SMP_DEBUG
+
+#define malloc(s) _smp_malloc(s, __FILE__, __LINE__)
+#define realloc(p,s) _smp_realloc(p,s, __FILE__, __LINE__)
+#define free(p) _smp_free(p, __FILE__, __LINE__)
 
 void main()
 {
-    char *a = smp_malloc(10240);
-    char *b = smp_malloc(32);
-    smp_free(a);
-    smp_free(b);
-    a = smp_malloc(10240);
-    b = smp_malloc(32);
-    smp_free(b);
-    smp_free(a);
-    a = smp_malloc(10240);
-    b = smp_malloc(32);
+    char *a = malloc(10240);
+    char *b = malloc(32);
+    free(a);
+    free(b);
+    a = malloc(10240);
+    b = malloc(32);
+    free(b);
+    free(a);
+    a = malloc(10240);
+    b = malloc(32);
 
-    a = smp_realloc(a, 10340);
+    a = realloc(a, 10340);
     memset(a, 'a', 10340);
     a[10339] = '\0';
     printf("%s\n", a + 10300);
 
-    b = smp_realloc(b, 64);
+    b = realloc(b, 64);
     memset(b, 'b', 64);
     b[63] = '\0';
     printf("%s\n", b);
+    free(a);
+    free(b);
 
-    smp_free(a);
-    smp_free(b);
+    a = malloc(2048 * 32 + 1);
+    free(a);
+    a = malloc(2048 * 32 + 1);
+    b = malloc(MAX_SMP_SIZE - 1024);
+    b = realloc(b, MAX_SMP_SIZE + 4096);
+    dump_smp_link();
+    free(a);
+    free(b);
 
-    a = smp_malloc(2048 * 32);
-    smp_free(a);
-    a = smp_malloc(2048 * 32);
-    b = smp_malloc(2048 * 32);
-    smp_free(a);
-    smp_free(b);
     exit(0);
 }
 

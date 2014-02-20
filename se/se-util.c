@@ -76,7 +76,7 @@ void add_dns_cache(const char *name, struct in_addr addr, int do_recache)
     n = dns_cache[p][k];
 
     if(n == NULL) {
-        m = smp_malloc(sizeof(dns_cache_item_t));
+        m = malloc(sizeof(dns_cache_item_t));
 
         if(m == NULL) {
             return;
@@ -96,7 +96,7 @@ void add_dns_cache(const char *name, struct in_addr addr, int do_recache)
             }
 
             if(n->next == NULL) {    /// last
-                m = smp_malloc(sizeof(dns_cache_item_t));
+                m = malloc(sizeof(dns_cache_item_t));
 
                 if(m == NULL) {
                     return;
@@ -131,7 +131,7 @@ int get_dns_cache(const char *name, struct in_addr *addr)
         while(n) {
             m = n;
             n = n->next;
-            smp_free(m);
+            free(m);
         }
 
         dns_cache[q][i] = NULL;
@@ -261,12 +261,12 @@ int be_get_dns_result(se_ptr_t *ptr)
             add_dns_cache(epd->dns_query_name, rt_addr.sin_addr, 0);
 
             epd->cb(epd->data, rt_addr);
-            smp_free(epd);
+            free(epd);
 
             return 0;
         }
 
-        smp_free(epd);
+        free(epd);
         break;
     }
 
@@ -281,7 +281,7 @@ static void dns_query_timeout_handle(void *ptr)
     se_errno = SE_DNS_QUERY_TIMEOUT;
     epd->cb(epd->data, null_addr);
     se_errno = 0;
-    smp_free(epd);
+    free(epd);
 }
 
 int se_dns_query(int loop_fd, const char *name, int timeout, se_be_dns_query_cb cb, void *data)
@@ -354,7 +354,7 @@ int se_dns_query(int loop_fd, const char *name, int timeout, se_be_dns_query_cb 
         return 0;
     }
 
-    _se_util_epdata_t *epd = smp_malloc(sizeof(_se_util_epdata_t));
+    _se_util_epdata_t *epd = malloc(sizeof(_se_util_epdata_t));
 
     if(!epd) {
         close(fd);
@@ -492,7 +492,7 @@ static int __be_connect(se_ptr_t *ptr)
 
     delete_timeout(epd->timeout_ptr);
     epd->connect_cb(epd->data, epd->fd);
-    smp_free(epd);
+    free(epd);
 
     return 1;
 }
@@ -505,7 +505,7 @@ static void connect_timeout_handle(void *ptr)
     se_errno = SE_CONNECT_TIMEOUT;
     epd->connect_cb(epd->data, -1);
     se_errno = 0;
-    smp_free(epd);
+    free(epd);
 }
 
 static void be_dns_query(void *data, struct sockaddr_in addr)
@@ -520,14 +520,14 @@ static void be_dns_query(void *data, struct sockaddr_in addr)
     if(ret == 0) {
         se_delete(epd->se_ptr);
         epd->connect_cb(epd->data, epd->fd);
-        smp_free(epd);
+        free(epd);
         return;
 
     } else if(ret == -1 && errno != EINPROGRESS) {
         close(epd->fd);
         se_delete(epd->se_ptr);
         epd->connect_cb(epd->data, -1);
-        smp_free(epd);
+        free(epd);
         return;
     }
 }
@@ -553,7 +553,7 @@ int se_connect(int loop_fd, const char *host, int port, int timeout, se_be_conne
         return 0;
     }
 
-    _se_util_epdata_t *epd = smp_malloc(sizeof(_se_util_epdata_t));
+    _se_util_epdata_t *epd = malloc(sizeof(_se_util_epdata_t));
 
     if(!epd) {
         close(fd);
@@ -584,14 +584,14 @@ int se_connect(int loop_fd, const char *host, int port, int timeout, se_be_conne
         if(ret == 0) {
             se_delete(epd->se_ptr);
             epd->connect_cb(data, fd);
-            smp_free(epd);
+            free(epd);
             return 1;
 
         } else if(ret == -1 && errno != EINPROGRESS) {
             close(epd->fd);
             se_delete(epd->se_ptr);
             epd->connect_cb(data, -1);
-            smp_free(epd);
+            free(epd);
             return 0;
         }
 
@@ -632,14 +632,14 @@ int se_connect(int loop_fd, const char *host, int port, int timeout, se_be_conne
     if(ret == 0) {
         se_delete(epd->se_ptr);
         epd->connect_cb(data, fd);
-        smp_free(epd);
+        free(epd);
         return 1;
 
     } else if(ret == -1 && errno != EINPROGRESS) {
         close(epd->fd);
         se_delete(epd->se_ptr);
         epd->connect_cb(data, -1);
-        smp_free(epd);
+        free(epd);
         return 0;
     }
 

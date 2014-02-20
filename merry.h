@@ -9,12 +9,12 @@
 #include <errno.h>
 #include <signal.h>
 
+#include "common/smp.h"
+#include "common/shm.h"
 #include "common/process.h"
 #include "common/network.h"
 #include "common/times.h"
 #include "common/timeouts.h"
-#include "common/smp.h"
-#include "common/shm.h"
 #include "common/log.h"
 #include "common/actionmoni-client.h"
 #include "common/is-binary.h"
@@ -30,10 +30,6 @@
 
 #ifndef _MERRY_H
 #define _MERRY_H
-
-#define malloc(s) smp_malloc(s)
-#define realloc(p,s) smp_realloc(p,s)
-#define free(p) smp_free(p)
 
 extern time_t now;
 extern struct tm _now_gtm;

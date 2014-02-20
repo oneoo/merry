@@ -22,17 +22,10 @@
 #include <mach-o/dyld.h>
 #endif
 
+#include "smp.h"
+
 #ifndef PROCESS_H
 #define PROCESS_H
-
-#define large_malloc(s) (malloc(((int)(s/4096)+1)*4096))
-
-#define cr_printf(fmt, ...) printf("%s%s [%d-%s:%s:%d] " fmt "%s", "\x1b[31m", &now_c, pid, __FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__, "\x1b[0m")
-#define cg_printf(fmt, ...) printf("%s%s [%d-%s:%s:%d] " fmt "%s", "\x1b[32m", &now_c, pid, __FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__, "\x1b[0m")
-#define cy_printf(fmt, ...) printf("%s%s [%d-%s:%s:%d] " fmt "%s", "\x1b[33m", &now_c, pid, __FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__, "\x1b[0m")
-#define cb_printf(fmt, ...) printf("%s%s [%d-%s:%s:%d] " fmt "%s", "\x1b[34m", &now_c, pid, __FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__, "\x1b[0m")
-#define cm_printf(fmt, ...) printf("%s%s [%d-%s:%s:%d] " fmt "%s", "\x1b[35m", &now_c, pid, __FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__, "\x1b[0m")
-#define cc_printf(fmt, ...) printf("%s%s [%d-%s:%s:%d] " fmt "%s", "\x1b[0m", &now_c, pid, __FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__, "\x1b[0m")
 
 extern char **environ;
 const char **_argv;

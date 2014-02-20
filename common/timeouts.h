@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include "smp.h"
 
 #ifndef _TIMEOUTS_H
 #define _TIMEOUTS_H

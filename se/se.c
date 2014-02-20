@@ -50,7 +50,7 @@ int se_loop(int loop_fd, int waitout, se_waitout_proc_t waitout_proc)
 
 se_ptr_t *se_add(int loop_fd, int fd, void *data)
 {
-    se_ptr_t *ptr = smp_malloc(sizeof(se_ptr_t));
+    se_ptr_t *ptr = malloc(sizeof(se_ptr_t));
 
     if(!ptr) {
         return ptr;
@@ -68,7 +68,7 @@ se_ptr_t *se_add(int loop_fd, int fd, void *data)
     int ret = epoll_ctl(loop_fd, EPOLL_CTL_ADD, fd, &ev);
 
     if(ret < 0) {
-        smp_free(ptr);
+        free(ptr);
         ptr = NULL;
     }
 
@@ -85,7 +85,7 @@ int se_delete(se_ptr_t *ptr)
         return -1;
     }
 
-    smp_free(ptr);
+    free(ptr);
 
     return 0;
 }

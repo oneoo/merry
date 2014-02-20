@@ -101,7 +101,7 @@ unsigned long _strtol(char *str64, int base)
     char _t[32] = {0};
 
     for(i = 0; i < strlen(str64); i++) {
-        if(str64[i] == '\r' || str64[i] == '\n' || str64[i] == '\t' || str64[i] == ' ' || str64[i] == ';') {
+        if(str64[i] == '\r' || str64[i] == '\n' || str64[i] == '\t' || str64[i] == ' ' || str64[i] == ';' || str64[i] == '-') {
             break;
         }
 

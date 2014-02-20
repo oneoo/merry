@@ -60,7 +60,7 @@ static int ev_set_fd(int loop_fd, int fd, unsigned ACT, se_ptr_t *ptr)
 
 se_ptr_t *se_add(int loop_fd, int fd, void *data)
 {
-    se_ptr_t *ptr = smp_malloc(sizeof(se_ptr_t));
+    se_ptr_t *ptr = malloc(sizeof(se_ptr_t));
 
     if(!ptr) {
         return ptr;
@@ -77,14 +77,14 @@ se_ptr_t *se_add(int loop_fd, int fd, void *data)
     ret = ev_set_fd(loop_fd, fd, EV_ADD, ptr);
 
     if(ret < 0) {
-        smp_free(ptr);
+        free(ptr);
         ptr = NULL;
     }
 
     ret = ev_set_fd(loop_fd, fd, EV_DISABLE, ptr);
 
     if(ret < 0) {
-        smp_free(ptr);
+        free(ptr);
         ptr = NULL;
     }
 
@@ -99,7 +99,7 @@ int se_delete(se_ptr_t *ptr)
 
     ev_set_fd(ptr->loop_fd, ptr->fd, EV_DELETE, ptr);
 
-    smp_free(ptr);
+    free(ptr);
 
     return 0;
 }

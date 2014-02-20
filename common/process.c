@@ -148,7 +148,15 @@ char *init_process_title(int argc, const char **argv)
         n += strlen(argv[i]) + 1;
     }
 
-    char *raw = malloc(n);
+    static char *raw_environ = NULL;
+
+    if(raw_environ) {
+        free(raw_environ);
+    }
+
+    raw_environ = malloc(n);
+
+    char *raw = raw_environ;
 
     for(i = 0; argv[i]; ++i) {
         memcpy(raw, argv[i], strlen(argv[i]) + 1);
