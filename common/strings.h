@@ -12,7 +12,7 @@ int stricmp(const char *str1, const char *str2);
 char *stristr(const char *str, const char *pat, int length);
 void random_string(char *string, size_t length, int s);
 
-unsigned long _strtol(char *str62, int base);
+unsigned long _strtol(char *str64, int base);
 char *_ltostr(char *str, long val, unsigned base);
 char *strsplit(const void *string_org, int org_len, const char *demial, char **last, int *len);
 
