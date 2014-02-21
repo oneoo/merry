@@ -16,15 +16,15 @@ Merry
 ---
 
 .  
-├── README.md  
-├── merry.c  
-├── [merry.h](#merry_start)		--框架总入口  
-├── se							--epoll/kqueue 封装  
-│   ├── se-kqueue.c  
-│   ├── se-util.c				--常用TCP接口封装  
-│   ├── [se-util.h](#se-util.h)  
-│   ├── se.c  
-│   └── [se.h](#se.h)  
+├── README.md 
+├── merry.c 
+├── [merry.h](#merry_start)		--框架总入口 
+├── se							--epoll/kqueue 封装 
+│   ├── se-kqueue.c 
+│   ├── se-util.c				--常用TCP接口封装 
+│   ├── [se-util.h](#se-util.h) 
+│   ├── se.c 
+│   └── [se.h](#se.h) 
 └── common  
     ├── actionmoni-client.c		--ActionMoni 监控服务客户端  
     ├── actionmoni-client.h  
@@ -71,7 +71,7 @@ merry.h
 
 框架总入口，如只使用框架里面的一些方法，可不使用
 
-####merry_start
+#### merry_start
 int merry\_start(int argc, const char \*\*argv, void (\*help)(), void (\*master)(), void (\*onexit)(), void (\*worker)(), int worker_count);
 
 启动方法
@@ -85,21 +85,21 @@ int merry\_start(int argc, const char \*\*argv, void (\*help)(), void (\*master)
     int worker_count	--最多开启多少个worker，默认0，指无限制，让框架自动按CPU核心数量进行设置
     
 
-###se.h
+### se.h
 
 网络IO事件驱动方法的封装，支持 Linux epoll 和 BSD kqueue
 
     typedef int (*se_rw_proc_t)(se_ptr_t *ptr);
     typedef int (*se_waitout_proc_t)();
 
-####se\_create
+#### se\_create
 `int se_create(int event_size);`
 
 创建IO事件驱动的文件描述符
 
 	int event_size		--事件循环的数组大小，一般为 4096
 
-####se\_loop
+#### se\_loop
 
 IO事件驱动的主体循环
 
@@ -110,7 +110,7 @@ IO事件驱动的主体循环
     se_waitout_proc_t waitout_proc	--主体循环中的子方法，用于处理些IO事件以外的小任务（注意不能长时间堵塞，子任务应该能在10毫秒内完成，否则请开线程处理）
     
 
-####se\_add
+#### se\_add
 
 绑定IO事件
 
@@ -122,7 +122,7 @@ IO事件驱动的主体循环
     
     返回 se_ptr_t * 类型的结构体
 
-####se\_delete
+#### se\_delete
 
 删除IO事件
 
@@ -132,7 +132,7 @@ IO事件驱动的主体循环
     
     返回值 1 或 0
 
-####se\_be\_read
+#### se\_be\_read
 
 设置IO事件将可读取
 
@@ -143,7 +143,7 @@ IO事件驱动的主体循环
     
     返回值 1 或 0
 
-####se\_be\_write
+#### se\_be\_write
 
 设置IO事件将可写入
 
@@ -154,7 +154,7 @@ IO事件驱动的主体循环
     
     返回值 1 或 0
 
-####se\_be\_pri
+#### se\_be\_pri
 
 设置IO事件将等待（暂不处理读写事件）
 
@@ -165,7 +165,7 @@ IO事件驱动的主体循环
     
     返回值 1 或 0
 
-####se\_be\_rw
+#### se\_be\_rw
 
 设置IO事件将可读取或写入
 
@@ -184,7 +184,7 @@ se-util.h
     typedef void (*se_be_dns_query_cb)(void *data, struct sockaddr_in addr);
     typedef void (*se_be_connect_cb)(void *data, int fd);
 
-####se\_accept
+#### se\_accept
 
 设置IO事件将可收到网络连接请求
 
@@ -201,7 +201,7 @@ se-util.h
     	int fd 为该次连接新建的文件描述符，
         client_addr 为客户端IP
 
-####se\_dns\_query
+#### se\_dns\_query
 
 发起一个异步 DNS 查询
 
@@ -222,7 +222,7 @@ se-util.h
         
     另外可通过全局变量 se_errno 判断错误类型，如 se_errno == SE_DNS_QUERY_TIMEOUT
 
-####se\_connect
+#### se\_connect
 
 发起一个异步网络连接请求
 
