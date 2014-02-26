@@ -13,7 +13,7 @@ char *stristr(const char *str, const char *pat, int length);
 void random_string(char *string, size_t length, int s);
 
 unsigned long _strtol(char *str64, int base);
-char *_ltostr(char *str, long val, unsigned base);
+char *_ltostr(char *str, unsigned long val, unsigned base);
 char *strsplit(const void *string_org, int org_len, const char *demial, char **last, int *len);
 
 #endif

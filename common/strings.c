@@ -97,7 +97,7 @@ void random_string(char *string, size_t length, int s)
 
 unsigned long _strtol(char *str64, int base)
 {
-    int i, j, nResult = 0;
+    unsigned long i, j, nResult = 0;
     char _t[32] = {0};
 
     for(i = 0; i < strlen(str64); i++) {
@@ -119,9 +119,9 @@ unsigned long _strtol(char *str64, int base)
     return nResult;
 }
 
-char *_ltostr(char *str, long val, unsigned base)
+char *_ltostr(char *str, unsigned long val, unsigned base)
 {
-    ldiv_t r;
+    uldiv_t r;
 
     if(base > 64) {//36
         str = '\0';
@@ -132,7 +132,7 @@ char *_ltostr(char *str, long val, unsigned base)
         *str++ = '-';
     }
 
-    r = ldiv(labs(val), base);
+    r = uldiv(val, base);
 
     if(r.quot > 0) {
         str = _ltostr(str, r.quot, base);
