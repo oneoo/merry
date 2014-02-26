@@ -49,7 +49,16 @@ int merry_start(int argc, const char **argv, void (*help)(), void (*master)(), v
     sprintf(bind_addr, "0.0.0.0");
 
     if(getarg("bind")) {
-        sprintf(bind_addr, "%s", getarg("bind"));
+        if(strstr(getarg("bind"), ".")) {
+            sprintf(bind_addr, "%s", getarg("bind"));
+
+        } else {
+            int _be_port = atoi(getarg("bind"));
+
+            if(_be_port > 0) {
+                bind_port = _be_port;
+            }
+        }
     }
 
     char *_port = strstr(bind_addr, ":");
