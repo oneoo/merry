@@ -4,7 +4,6 @@
 #include <fcntl.h>
 #include <stdarg.h>
 #include "shm.h"
-#include "smp.h"
 
 #ifndef _LOG_H
 #define _LOG_H
