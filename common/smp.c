@@ -136,7 +136,7 @@ static void delete_in_smp_link(void *p, int s)
 
     }
 
-    printf("free error %p\n", p);
+    LOGF(ERR, "free error %p\n", p);
     exit(1);
 }
 #endif
@@ -147,11 +147,11 @@ void dump_smp_link()
     int i = 0;
 
     for(i = 0; i < 32; i++) {
-        printf("%d ========================================\n", i * 32);
+        LOGF(DEBUG, "%d ========================================\n", i * 32);
         smp_link_t *n = smp_link[i];
 
         while(n) {
-            printf("%s:%d %s:%d %p\n", n->f2, n->l2, n->f, n->l, n->p);
+            LOGF(DEBUG, "%s:%d %s:%d %p\n", n->f2, n->l2, n->f, n->l, n->p);
             n = n->next;
         }
     }
