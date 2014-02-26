@@ -119,9 +119,23 @@ unsigned long _strtol(char *str64, int base)
     return nResult;
 }
 
+typedef struct {
+    unsigned long quot;
+    unsigned long rem;
+} _uldiv_t;
+
+static _uldiv_t _uldiv(unsigned long number, unsigned long denom)
+{
+    _uldiv_t rv;
+
+    rv.quot = number / denom;
+    rv.rem = number % denom;
+    return rv;
+}
+
 char *_ltostr(char *str, unsigned long val, unsigned base)
 {
-    uldiv_t r;
+    _uldiv_t r;
 
     if(base > 64) {//36
         str = '\0';
@@ -132,7 +146,7 @@ char *_ltostr(char *str, unsigned long val, unsigned base)
         *str++ = '-';
     }
 
-    r = uldiv(val, base);
+    r = _uldiv(val, base);
 
     if(r.quot > 0) {
         str = _ltostr(str, r.quot, base);
