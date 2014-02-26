@@ -1,7 +1,5 @@
 #include "log.h"
 #include "times.h"
-#include "smp.h"
-
 #include <errno.h>
 logf_t *LOGF_T = NULL;
 int LOG_LEVEL = NOTICE;

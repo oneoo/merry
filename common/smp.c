@@ -1,19 +1,4 @@
 #include "smp.h"
-#include "log.h"
-
-extern int is_daemon;
-extern int process_count;
-extern int pid;
-
-extern time_t now;
-extern struct tm _now_gtm;
-extern struct tm _now_lc;
-extern char now_gmt[32];
-extern char now_lc[32];
-
-extern logf_t *LOGF_T;
-extern int LOG_LEVEL;
-
 /*
 simple memory pool
 */
@@ -162,11 +147,11 @@ void dump_smp_link()
     int i = 0;
 
     for(i = 0; i < 32; i++) {
-        LOGF(DEBUG, "%d ========================================\n", i * 32);
+        printf("%d ========================================\n", i * 32);
         smp_link_t *n = smp_link[i];
 
         while(n) {
-            LOGF(DEBUG, "%s:%d %s:%d %p\n", n->f2, n->l2, n->f, n->l, n->p);
+            printf("%s:%d %s:%d %p\n", n->f2, n->l2, n->f, n->l, n->p);
             n = n->next;
         }
     }
