@@ -1,4 +1,5 @@
 #include "smp.h"
+#include "log.h"
 /*
 simple memory pool
 */
