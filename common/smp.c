@@ -91,6 +91,7 @@ static void add_to_smp_link(void *p, int s, char *f, int l)
     }
 }
 
+#ifdef SMPDEBUG
 static void delete_in_smp_link(void *p, int s)
 {
     if(!p) {
@@ -138,6 +139,7 @@ static void delete_in_smp_link(void *p, int s)
     printf("free error %p\n", p);
     exit(1);
 }
+#endif
 
 void dump_smp_link()
 {
