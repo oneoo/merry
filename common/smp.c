@@ -1,6 +1,19 @@
 #include "smp.h"
 #include "log.h"
 
+extern int is_daemon;
+extern int process_count;
+extern int pid;
+
+extern time_t now;
+extern struct tm _now_gtm;
+extern struct tm _now_lc;
+extern char now_gmt[32];
+extern char now_lc[32];
+
+extern logf_t *LOGF_T;
+extern int LOG_LEVEL;
+
 /*
 simple memory pool
 */
