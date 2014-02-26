@@ -136,7 +136,7 @@ static void delete_in_smp_link(void *p, int s)
 
     }
 
-    LOGF(ERR, "free error %p\n", p);
+    perror("free error %p\n", p);
     exit(1);
 }
 #endif
