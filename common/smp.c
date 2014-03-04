@@ -145,10 +145,11 @@ void dump_smp_link()
 {
 #ifdef SMPDEBUG
     int i = 0;
+    smp_link_t *n = NULL;
 
     for(i = 0; i < 32; i++) {
         printf("%d ========================================\n", i * 32);
-        smp_link_t *n = smp_link[i];
+        n = smp_link[i];
 
         while(n) {
             printf("%s:%d %s:%d %p\n", n->f2, n->l2, n->f, n->l, n->p);
@@ -330,6 +331,22 @@ int smp_free(void *p)
 int _smp_free(void *p, char *f, int l)
 {
     return smp_free(p);
+}
+
+void smp_free_all()
+{
+    int i = 0;
+    smp_link_t *n = NULL, *m = NULL;
+
+    for(i = 0; i < 32; i++) {
+        n = smp_link[i];
+
+        while(n) {
+            m = n;
+            n = n->next;
+            free(m);
+        }
+    }
 }
 
 #ifdef SMP_DEBUG

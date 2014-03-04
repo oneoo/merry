@@ -14,6 +14,7 @@ void *_smp_realloc(void *p, unsigned int size, char *f, int l);
 int _smp_free(void *p, char *f, int l);
 
 void dump_smp_link();
+void smp_free_all();
 
 #else
 
