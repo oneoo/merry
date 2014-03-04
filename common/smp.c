@@ -365,6 +365,18 @@ void smp_free_all()
         }
     }
 
+    void *np = NULL;
+
+    for(i = 0; i < MAX_SMP_SIZE / 32; i++) {
+        np = head[i];
+
+        while(np) {
+            p = np;
+            np = *(void **)(np + _SSIZE);
+            free(p);
+        }
+    }
+
 #endif
 }
 
