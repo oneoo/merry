@@ -333,10 +333,18 @@ int _smp_free(void *p, char *f, int l)
     return smp_free(p);
 }
 
+static int all_freed = 0;
 void smp_free_all()
 {
+#ifdef SMPDEBUG
+
+    if(all_freed++) {
+        return;
+    }
+
     int i = 0;
     smp_link_t *n = NULL, *m = NULL;
+    void *p = NULL;
 
     for(i = 0; i < 32; i++) {
         n = smp_link[i];
@@ -344,9 +352,20 @@ void smp_free_all()
         while(n) {
             m = n;
             n = n->next;
+            p = m->p;
+
+            if(_S_PTR(p - _SSIZE) == 0) {
+                free((p - _I_SSIZE));
+
+            } else {
+                free((p - _SSIZE));
+            }
+
             free(m);
         }
     }
+
+#endif
 }
 
 #ifdef SMP_DEBUG

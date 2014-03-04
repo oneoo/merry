@@ -245,11 +245,13 @@ static void on_process_exit_handler(int sig, siginfo_t *info, void *secret)
         copy_buf_to_shm_log_buf(LOGF_T);
         on_worker_exit_func();
         copy_buf_to_shm_log_buf(LOGF_T);
+        smp_free_all();
     }
 
     if(on_master_exit_func) {
         on_master_exit_func();
         log_destory(LOGF_T);
+        smp_free_all();
     }
 
     exit(0);
@@ -355,6 +357,7 @@ void start_master_main(void (*func)(), void (*onexit)())
             }
 
             log_destory(LOGF_T);
+            smp_free_all();
 
             exit(0);
 
