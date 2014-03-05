@@ -40,6 +40,10 @@ int merry_start(int argc, const char **argv, void (*help)(), void (*master)(), v
         if(process_count < 1) {
             process_count = get_cpu_num();
         }
+
+        if(process_count < 1) {
+            process_count = 1;
+        }
     }
 
     if(worker_count > 0 && process_count > worker_count) {
