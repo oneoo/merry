@@ -95,7 +95,7 @@ void random_string(char *string, size_t length, int s)
     }
 }
 
-unsigned long _strtol(char *str64, int base)
+unsigned long strtoul(char *str64, int base)
 {
     unsigned long i, j, nResult = 0;
     char _t[32] = {0};
@@ -133,7 +133,7 @@ static _uldiv_t _uldiv(unsigned long number, unsigned long denom)
     return rv;
 }
 
-char *_ltostr(char *str, unsigned long val, unsigned base)
+char *ultostr(char *str, unsigned long val, unsigned base)
 {
     _uldiv_t r;
 
@@ -149,7 +149,7 @@ char *_ltostr(char *str, unsigned long val, unsigned base)
     r = _uldiv(val, base);
 
     if(r.quot > 0) {
-        str = _ltostr(str, r.quot, base);
+        str = ultostr(str, r.quot, base);
     }
 
     *str++ = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ,."[(int)r.rem];
