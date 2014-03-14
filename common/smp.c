@@ -333,7 +333,9 @@ int _smp_free(void *p, char *f, int l)
     return smp_free(p);
 }
 
+#ifdef SMPDEBUG
 static int all_freed = 0;
+#endif
 void smp_free_all()
 {
 #ifdef SMPDEBUG
