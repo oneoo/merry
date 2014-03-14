@@ -688,15 +688,15 @@ strings.h
 
 `void random_string(char *string, size_t length, int s);`
 
-#### _strtol
+#### _strtoul
 
-字符串转换为数字（支持 2～64 进制）
+字符串转换为unsigned long数字（支持 2～64 进制）
 
 `unsigned long _strtol(char *str64, int base);`
 
-#### _ltostr
+#### _ultostr
 
-数字转换为字符串（支持 2～62 进制）
+把unsigned long数字转换为字符串（支持 2～64 进制）
 
 `char *_ltostr(char *str, long val, unsigned base);`
 
