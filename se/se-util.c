@@ -1,8 +1,5 @@
 #include "se-util.h"
 
-static se_be_accept_cb be_accept = NULL;
-static int _server_fd = 0;
-
 static struct hostent *localhost_ent = NULL;
 static uint16_t dns_tid = 0;
 static struct sockaddr_in dns_servers[4];
@@ -23,14 +20,14 @@ static int be_accept_f(se_ptr_t *ptr)
 
     while(acc_trys++ < 3) {
 #ifdef HAVE_ACCPEPT4
-        client_fd = accept4(server_fd, (struct sockaddr *)&remote_addr, &addr_len, SOCK_NONBLOCK);
+        client_fd = accept4(ptr->fd, (struct sockaddr *)&remote_addr, &addr_len, SOCK_NONBLOCK);
 
         if(errno == ENOSYS) {
-            client_fd = accept(server_fd, (struct sockaddr *) &remote_addr, &addr_len);
+            client_fd = accept(ptr->fd, (struct sockaddr *) &remote_addr, &addr_len);
         }
 
 #else
-        client_fd = accept(server_fd, (struct sockaddr *) &remote_addr, &addr_len);
+        client_fd = accept(ptr->fd, (struct sockaddr *) &remote_addr, &addr_len);
 #endif
 
         if(client_fd < 0 && errno != EAGAIN && errno != EWOULDBLOCK) {
@@ -42,7 +39,7 @@ static int be_accept_f(se_ptr_t *ptr)
             continue;
         }
 
-        be_accept(client_fd, remote_addr.sin_addr);
+        ((se_be_accept_cb)ptr->data)(client_fd, remote_addr.sin_addr);
 
         acc_trys = 0;
     }
@@ -50,12 +47,12 @@ static int be_accept_f(se_ptr_t *ptr)
     return 1;
 }
 
-int se_accept(int loop_fd, int __server_fd, se_be_accept_cb _be_accept)
+int se_accept(int loop_fd, int server_fd, se_be_accept_cb _be_accept)
 {
-    _server_fd = __server_fd;
-    be_accept = _be_accept;
-    se_ptr_t *se = se_add(loop_fd, _server_fd, NULL);
-    se_be_read(se, be_accept_f);
+    se_ptr_t *ptr = se_add(loop_fd, server_fd, NULL);
+    ptr->fd = server_fd;
+    ptr->data = _be_accept;
+    se_be_read(ptr, be_accept_f);
     return 1;
 }
 
