@@ -5,8 +5,8 @@
 
 #include <stdint.h>
 
-uint32_t fnv1a_32(const unsigned char *data, uint32_t len);
-uint32_t fnv1a_64(const unsigned char *data, uint32_t len);
+uint32_t fnv1a_32(const void *key, uint32_t len);
+uint32_t fnv1a_64(const void *key, uint32_t len);
 
 #if defined(__x86_64__)
 #define MURMUR_HASH MurmurHash64A

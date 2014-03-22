@@ -71,7 +71,7 @@ logf_t *open_log(const char *fn, int sz)
         if(_logf) {
             memset(_logf, 0, sizeof(logf_t));
             _logf->LOG_FD = fd;
-            _logf->_shm_log_buf = malloc(sz + 4);
+            _logf->_shm_log_buf = shm_malloc(sz + 4);
 
             if(_logf->_shm_log_buf) {
                 _logf->log_buf_len = _logf->_shm_log_buf->p + sz;
@@ -97,7 +97,7 @@ void log_destory(logf_t *_logf)
     }
 
     sync_logs(_logf);
-    free(_logf->_shm_log_buf);
+    shm_free(_logf->_shm_log_buf);
     _logf->_shm_log_buf = NULL;
 
     if(_logf->LOG_FD != -1) {
