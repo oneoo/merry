@@ -85,6 +85,7 @@ int set_cpu_affinity(uint32_t n)
 
 void set_process_title(const char *title, int is_master)
 {
+    pid = getpid();
     _argv[1] = 0;
     char *p = (char *)_argv[0];
     memset(p, 0x00, process_char_last - p);

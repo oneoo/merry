@@ -28,7 +28,7 @@ typedef struct {
     long last_wtime;
 } logf_t;
 
-#define LOGF(l,a,...) if(l>=LOG_LEVEL&&((is_daemon==1||printf("%s%s %s [%d-%s:%s:%d] " a "%s", \
+#define LOGF(l,a,...) if(l>=LOG_LEVEL&&(((is_daemon==1&&LOGF_T)||printf("%s%s %s [%d-%s:%s:%d] " a "%s", \
                                         (l==DEBUG?"\x1b[0m":(l==INFO?"\x1b[32m":(l==NOTICE?"\x1b[34m":(l==WARN?"\x1b[33m":(l==ALERT?"\x1b[35m":"\x1b[31m"))))), now_lc, \
                                         (l==DEBUG?"DEBUG ":(l==INFO?"INFO  ":(l==NOTICE?"NOTICE":(l==WARN?"WARN  ":(l==ALERT?"ALERT ":"ERR   "))))), \
                                         pid, __FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__, "\x1b[0m\n") ))&&LOGF_T) \
@@ -36,7 +36,7 @@ typedef struct {
                (l==DEBUG?"DEBUG":(l==INFO?"INFO":(l==NOTICE?"NOTICE":(l==WARN?"WARN":(l==ALERT?"ALERT":"ERR"))))), \
                ##__VA_ARGS__)
 
-#define _LOGF(l,f,a,...) if(l>=LOG_LEVEL&&((is_daemon==1||printf("%s%s %s [%d-%s] " a "%s", \
+#define _LOGF(l,f,a,...) if(l>=LOG_LEVEL&&(((is_daemon==1&&LOGF_T)||printf("%s%s %s [%d-%s] " a "%s", \
                             (l==DEBUG?"\x1b[0m":(l==INFO?"\x1b[32m":(l==NOTICE?"\x1b[34m":(l==WARN?"\x1b[33m":(l==ALERT?"\x1b[35m":"\x1b[31m"))))), now_lc, \
                             (l==DEBUG?"DEBUG ":(l==INFO?"INFO  ":(l==NOTICE?"NOTICE":(l==WARN?"WARN  ":(l==ALERT?"ALERT ":"ERR   "))))), \
                             pid, f, ##__VA_ARGS__, "\x1b[0m\n") ))&&LOGF_T) \
