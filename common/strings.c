@@ -1,79 +1,97 @@
 #include "strings.h"
 
-int stricmp(const char *str1, const char *str2)
+int stricmp(const void *s1, const void *s2)
 {
-    char *p1, *p2;
-    int  i = 0, len = 0;
+    const unsigned char *p1 = (const unsigned char *) s1;
+    const unsigned char *p2 = (const unsigned char *) s2;
+    int result;
 
-    if(str1 == NULL) {
-        if(str2 != NULL) {
-            return -1;
-        }
+    if(p1 == p2) {
+        return 0;
+    }
 
-        if(str2 == NULL) {
-            return 0;
+    while((result = tolower(*p1) - tolower(*p2++)) == 0) {
+        if(*p1++ == '\0') {
+            break;
         }
     }
 
-    p1 = (char *) str1;
-    p2 = (char *) str2;
-    len = (strlen(str1) < strlen(str2)) ? strlen(str1) : strlen(str2);
-
-    for(i = 0; i < len; i++) {
-        if(toupper(*p1) == toupper(*p2)) {
-            p1++;
-            p2++;
-
-        } else {
-            return toupper(*p1) - toupper(*p2);
-        }
-    }
-
-    return strlen(str1) - strlen(str2);
+    return result;
 }
 
-char *stristr(const char *str, const char *pat, int length)
+int strincmp(const void *s1, const void *s2, size_t n)
 {
-    if(!str || !pat) {
-        return (NULL);
+    const char *p1 = s1;
+    const char *p2 = s2;
+    int d = 0;
+
+    for(; n != 0; n--) {
+        int c1 = tolower(*p1++);
+        int c2 = tolower(*p2++);
+
+        if(((d = c1 - c2) != 0) || (c2 == '\0')) {
+            break;
+        }
     }
 
-    if(length < 1) {
-        length = strlen(str);
-    }
+    return d;
+}
 
-    int pat_len = strlen(pat);
+const char *stristr(const void *str, const void *pat, int length)
+{
+    const char *_str = str;
+    const char *_pat = pat;
+    int _dict[128] = {0};
 
-    if(length < pat_len) {
+    if(!_str || !_pat) {
         return NULL;
     }
 
-    int i = 0;
+    if(length < 1) {
+        length = strlen(_str);
+    }
 
-    for(i = 0; i < length; i++) {
-        if(toupper(str[i]) == toupper(pat[0]) && (length - i) >= pat_len
-           && toupper(str[i + pat_len - 1]) == toupper(pat[pat_len - 1])) {
-            int j = i;
+    int pat_len = 0, i = 0, j = 0, m = 0, c = 0;
 
-            for(; j < i + pat_len; j++) {
-                if(toupper(str[j]) != toupper(pat[j - i])) {
-                    break;
-                }
-            }
+    while(_pat[i++]) {
+        _dict[tolower(_pat[pat_len]) % 128] = ++pat_len;
+    }
 
-            if(j < i + pat_len) {
+    for(i = pat_len - 1; i < length; i += pat_len) {
+        j = _dict[tolower(_str[i]) % 128];
+
+        if(j) {
+            m = i;
+            i -= (j - 1);
+
+            if(tolower(_str[i]) != tolower(_pat[0])) {
                 continue;
             }
 
-            return (char *) str + i;
+            for(; i < m + (pat_len - j); i++) {
+                if((length - i) >= pat_len && tolower(_str[i + pat_len - 1]) == tolower(_pat[pat_len - 1])) {
+                    for(j = 1; j < pat_len; j++) {
+                        if(tolower(_str[i + j]) != tolower(_pat[j])) {
+                            break;
+                        }
+                    }
+
+                    if(j < pat_len) {
+                        continue;
+                    }
+
+                    return (char *)_str + i;
+                }
+            }
         }
     }
 
-    return (NULL);
+    return NULL;
 }
 
-void random_string(char *string, size_t length, int s)
+void random_string(void *string, size_t length, int s)
 {
+    char *_string = (char *)string;
     /* Seed number for rand() */
     struct timeb t;
     ftime(&t);
@@ -85,32 +103,37 @@ void random_string(char *string, size_t length, int s)
 
     for(i = 0; i < num_chars; ++i) {
         if(j % 1000 < 500) {
-            string[i] = j % ('g' - 'a') + 'a';
+            _string[i] = j % ('g' - 'a') + 'a';
 
         } else {
-            string[i] = j % (':' - '0') + '0';
+            _string[i] = j % (':' - '0') + '0';
         }
 
         j = rand();
     }
 }
 
-unsigned long _strtoul(char *str64, int base)
+unsigned long _strtoul(void *str64, int base)
 {
+    char *_str64 = (char *)str64;
     unsigned long i, j, nResult = 0;
     char _t[32] = {0};
+    int m = strlen(_str64);
 
-    for(i = 0; i < strlen(str64); i++) {
-        if(str64[i] == '\r' || str64[i] == '\n' || str64[i] == '\t' || str64[i] == ' ' || str64[i] == ';' || str64[i] == '-') {
+    if(m > 32) {
+        return 0;
+    }
+
+    for(i = 0; i < m; i++) {
+        if(_str64[i] == '\r' || _str64[i] == '\n' || _str64[i] == '\t' || _str64[i] == ' ' || _str64[i] == ';'
+           || _str64[i] == '-') {
             break;
         }
 
-        _t[i] = str64[i];
+        _t[i] = _str64[i];
     }
 
     for(i = 0; i < strlen(_t); i++) {
-
-
         j = _t[i] == ',' ? 62 : (_t[i] == '.' ? 63 : (_t[i] <= '9' ? _t[i] - '0' :
                                  (_t[i] <= 'Z' ? 36 + _t[i] - 'A' : 10 + _t[i] - 'a')));
         nResult += pow(base, (strlen(_t) - i - 1)) * j ;
@@ -133,28 +156,29 @@ static _uldiv_t _uldiv(unsigned long number, unsigned long denom)
     return rv;
 }
 
-char *_ultostr(char *str, unsigned long val, unsigned base)
+char *_ultostr(void *str, unsigned long val, unsigned base)
 {
+    char *_str = (char *)str;
     _uldiv_t r;
 
     if(base > 64) {//36
-        str = '\0';
-        return str;
+        _str = '\0';
+        return NULL;
     }
 
     if(val < 0) {
-        *str++ = '-';
+        *_str++ = '-';
     }
 
     r = _uldiv(val, base);
 
     if(r.quot > 0) {
-        str = _ultostr(str, r.quot, base);
+        _str = _ultostr(_str, r.quot, base);
     }
 
-    *str++ = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ,."[(int)r.rem];
-    *str   = '\0';
-    return str;
+    *_str++ = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ,."[(int)r.rem];
+    *_str   = '\0';
+    return _str;
 }
 
 char *strsplit(const void *string_org, int org_len, const char *demial, char **last, int *len)
