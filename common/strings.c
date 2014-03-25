@@ -48,7 +48,7 @@ const char *stristr(const void *str, const void *pat, int length)
     }
 
     if(length < 1) {
-        length = strlen(_str);
+        length = strlen((char *)_str);
     }
 
     int pat_len = 0, i = 0, j = 0, m = 0;
@@ -119,7 +119,7 @@ unsigned long _strtoul(void *str64, int base)
     unsigned char *_str64 = (unsigned char *)str64;
     unsigned long i, j, nResult = 0;
     char _t[32] = {0};
-    int m = strlen(_str64);
+    int m = strlen((char *)_str64);
 
     if(m > 32) {
         return 0;
