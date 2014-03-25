@@ -21,8 +21,8 @@ int stricmp(const void *s1, const void *s2)
 
 int strincmp(const void *s1, const void *s2, size_t n)
 {
-    const char *p1 = s1;
-    const char *p2 = s2;
+    const unsigned char *p1 = s1;
+    const unsigned char *p2 = s2;
     int d = 0;
 
     for(; n != 0; n--) {
@@ -39,8 +39,8 @@ int strincmp(const void *s1, const void *s2, size_t n)
 
 const char *stristr(const void *str, const void *pat, int length)
 {
-    const char *_str = str;
-    const char *_pat = pat;
+    const unsigned char *_str = str;
+    const unsigned char *_pat = pat;
     int _dict[128] = {0};
 
     if(!_str || !_pat) {
@@ -116,7 +116,7 @@ void random_string(void *string, size_t length, int s)
 
 unsigned long _strtoul(void *str64, int base)
 {
-    char *_str64 = (char *)str64;
+    unsigned char *_str64 = (unsigned char *)str64;
     unsigned long i, j, nResult = 0;
     char _t[32] = {0};
     int m = strlen(_str64);
