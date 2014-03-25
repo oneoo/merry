@@ -51,10 +51,11 @@ const char *stristr(const void *str, const void *pat, int length)
         length = strlen(_str);
     }
 
-    int pat_len = 0, i = 0, j = 0, m = 0, c = 0;
+    int pat_len = 0, i = 0, j = 0, m = 0;
 
     while(_pat[i++]) {
-        _dict[tolower(_pat[pat_len]) % 128] = ++pat_len;
+        _dict[tolower(_pat[pat_len]) % 128] = pat_len + 1;
+        pat_len++;
     }
 
     for(i = pat_len - 1; i < length; i += pat_len) {
