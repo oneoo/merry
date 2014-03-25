@@ -69,7 +69,7 @@ logf_t *open_log(const char *fn, int sz)
         _logf = malloc(sizeof(logf_t));
 
         if(_logf) {
-            memset(_logf, 0, sizeof(logf_t));
+            bzero(_logf, sizeof(logf_t));
             _logf->LOG_FD = fd;
             _logf->_shm_log_buf = shm_malloc(sz + 4);
 

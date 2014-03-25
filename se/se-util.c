@@ -571,7 +571,7 @@ int se_connect(int loop_fd, const char *host, int port, int timeout, se_be_conne
 
         struct sockaddr_un un;
 
-        memset(&un, 0, sizeof(struct sockaddr_un));
+        bzero(&un, sizeof(struct sockaddr_un));
         strcpy(un.sun_path, host);
         un.sun_family = AF_UNIX;
         int length = offsetof(struct sockaddr_un, sun_path) + strlen(un.sun_path);

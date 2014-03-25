@@ -214,7 +214,7 @@ MD5_CTX *context;
     Encode(digest, context->state, 16);
 
     /* Zeroize sensitive information. */
-    memset((void *)context, 0, sizeof(*context));
+    bzero(context, sizeof(*context));
 }
 
 /* MD5 basic transformation. Transforms state based on block. */
@@ -322,7 +322,7 @@ const unsigned char block[64];
     state[3] += d;
 
     /* Zeroize sensitive information. */
-    memset((void *)x, 0, sizeof(x));
+    bzero(x, sizeof(x));
 }
 
 void md5(const unsigned char *data, size_t len, char *hex)

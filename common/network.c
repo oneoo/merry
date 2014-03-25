@@ -40,7 +40,7 @@ int network_bind(const char *addr, int port)
                sizeof(int));
     setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (const void *) &nodelay, sizeof(int));
 
-    memset(&sin, 0, sizeof(struct sockaddr_in));
+    bzero(&sin, sizeof(struct sockaddr_in));
     sin.sin_family = AF_INET;
     sin.sin_port = htons((short)(port));
 
@@ -117,11 +117,11 @@ char *network_raw_read(int cfd, int *datas_len)
     while(1) {
         if(datas == NULL) {
             datas = (char *) malloc(sizeof(char) * EP_D_BUF_SIZE);
-            memset(datas, 0, EP_D_BUF_SIZE);
+            bzero(datas, EP_D_BUF_SIZE);
 
         } else {
             datas = (char *) realloc(datas, sizeof(char) * (len + EP_D_BUF_SIZE));
-            memset(datas + len, 0, EP_D_BUF_SIZE);
+            bzero(datas + len, EP_D_BUF_SIZE);
         }
 
         if((n = read(cfd, datas + len, EP_D_BUF_SIZE)) <= 0) {

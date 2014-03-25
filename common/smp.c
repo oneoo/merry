@@ -56,8 +56,8 @@ static void add_to_smp_link(void *p, int s, char *f, int l)
     n->next = NULL;
     n->l = l;
     n->p = p;
-    memset(n->f, 0, 64);
-    memset(n->f2, 0, 64);
+    bzero(n->f, 64);
+    bzero(n->f2, 64);
 
     int fl = strlen(f);
     int fs = 0;

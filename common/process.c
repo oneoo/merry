@@ -88,7 +88,7 @@ void set_process_title(const char *title, int is_master)
     pid = getpid();
     _argv[1] = 0;
     char *p = (char *)_argv[0];
-    memset(p, 0x00, process_char_last - p);
+    bzero(p, process_char_last-p);
 
     if(is_master) {
         snprintf(p, process_char_last - p, "%s: %s %s%s", process_name, title,
