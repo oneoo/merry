@@ -14,11 +14,9 @@ int se_loop(int loop_fd, int waitout, se_waitout_proc_t waitout_proc)
     int n = 0, i = 0, r = 1;
     se_ptr_t *ptr = NULL;
 
-    if(waitout < 1000) {
-        waitout = 1000;
-    }
+    waitout *= 1000000;
 
-    struct timespec tmout = { waitout / 1000, waitout % 1000 };
+    struct timespec tmout = { waitout / 1000000000, waitout % 1000000000 };
 
     while(1) {
         update_time();
