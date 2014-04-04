@@ -25,28 +25,31 @@ logf_t *open_log(const char *fn, int sz)
     char oldc = 0;
 
     if(p) {
-        if(strstr(p, "DEBUG")) {
+        if(stristr(p, "DEBUG")) {
             LOG_LEVEL = 1;
 
-        } else if(strstr(p, "INFO")) {
+        } else if(stristr(p, "INFO")) {
             LOG_LEVEL = 2;
 
-        } else if(strstr(p, "NOTICE")) {
+        } else if(stristr(p, "NOTICE")) {
             LOG_LEVEL = 3;
 
-        } else if(strstr(p, "WARN")) {
+        } else if(stristr(p, "WARN")) {
             LOG_LEVEL = 4;
 
-        } else if(strstr(p, "ALERT")) {
+        } else if(stristr(p, "ALERT")) {
             LOG_LEVEL = 5;
 
-        } else if(strstr(p, "ERR")) {
+        } else if(stristr(p, "ERR")) {
             LOG_LEVEL = 6;
+
+        } else if(stristr(p, "NO")) {
+            LOG_LEVEL = 7;
 
         } else {
             int i = atoi(p + 1);
 
-            if(i > 0 && i < 7) {
+            if(i > 0 && i < 8) {
                 LOG_LEVEL = i;
             }
         }
@@ -61,7 +64,10 @@ logf_t *open_log(const char *fn, int sz)
     }
 
     int fd = open(fn, O_APPEND | O_CREAT | O_WRONLY, 0644);
-    p[0] = oldc;
+
+    if(p) {
+        p[0] = oldc;
+    }
 
     logf_t *_logf = NULL;
 
