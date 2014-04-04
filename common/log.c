@@ -25,25 +25,25 @@ logf_t *open_log(const char *fn, int sz)
     char oldc = 0;
 
     if(p) {
-        if(stristr(p, "DEBUG")) {
+        if(strstr(p, "DEBUG")) {
             LOG_LEVEL = 1;
 
-        } else if(stristr(p, "INFO")) {
+        } else if(strstr(p, "INFO")) {
             LOG_LEVEL = 2;
 
-        } else if(stristr(p, "NOTICE")) {
+        } else if(strstr(p, "NOTICE")) {
             LOG_LEVEL = 3;
 
-        } else if(stristr(p, "WARN")) {
+        } else if(strstr(p, "WARN")) {
             LOG_LEVEL = 4;
 
-        } else if(stristr(p, "ALERT")) {
+        } else if(strstr(p, "ALERT")) {
             LOG_LEVEL = 5;
 
-        } else if(stristr(p, "ERR")) {
+        } else if(strstr(p, "ERR")) {
             LOG_LEVEL = 6;
 
-        } else if(stristr(p, "NO")) {
+        } else if(strstr(p, "NO")) {
             LOG_LEVEL = 7;
 
         } else {
