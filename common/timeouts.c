@@ -1,11 +1,10 @@
 #include "timeouts.h"
 #include "smp.h"
 
-extern time_t now;
-
-#define TIMEOUTS_LINK_RING_SIZE 512
+#define TIMEOUTS_LINK_RING_SIZE 6000
 static timeout_t *timeout_links[TIMEOUTS_LINK_RING_SIZE] = {0};
 static timeout_t *timeout_link_ends[TIMEOUTS_LINK_RING_SIZE] = {0};
+static long last_check_time = 0;
 
 timeout_t *add_timeout(void *ptr, int timeout, timeout_handle_cb handle)
 {
@@ -21,7 +20,7 @@ timeout_t *add_timeout(void *ptr, int timeout, timeout_handle_cb handle)
 
     n->handle = handle;
     n->ptr = ptr;
-    n->timeout = now + timeout;
+    n->timeout = (longtime() + timeout) / 10;
     n->uper = NULL;
     n->next = NULL;
 
@@ -42,30 +41,43 @@ timeout_t *add_timeout(void *ptr, int timeout, timeout_handle_cb handle)
 
 int check_timeouts()
 {
-    int k = now % TIMEOUTS_LINK_RING_SIZE;
+    long l_now = (longtime() / 10);
     timeout_t *m = NULL, *n = NULL;
     int b = 1;
 
-    while(1) {
-        b = 1;
-        m = timeout_links[k];
-        n = NULL;
+    if(last_check_time == 0) {
+        last_check_time = l_now;
+    }
 
-        while(m) {
-            n = m;
-            m = m->next;
+    do {
+        int k = last_check_time % TIMEOUTS_LINK_RING_SIZE;
 
-            if(now >= n->timeout) {
-                n->handle(n->ptr);
-                b = 0;
+        while(1) {
+            b = 1;
+            m = timeout_links[k];
+            n = NULL;
+
+            while(m) {
+                n = m;
+                m = m->next;
+
+                if(l_now >= n->timeout) {
+                    n->handle(n->ptr);
+                    b = 0;
+                    break;
+                }
+            }
+
+            if(b) {
                 break;
             }
         }
 
-        if(b) {
-            break;
+        if(last_check_time < l_now) {
+            last_check_time++;
+            continue;
         }
-    }
+    } while(last_check_time < l_now);
 
     return 1;
 }
@@ -122,7 +134,7 @@ void update_timeout(timeout_t *n, int timeout)
         return;
     }
 
-    n->timeout = now + timeout;
+    n->timeout = (longtime() + timeout) / 10;
     n->uper = NULL;
     n->next = NULL;
 
