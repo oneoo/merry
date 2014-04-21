@@ -10,7 +10,7 @@ char now_lc[32] = {0};
 static const char *DAYS_OF_WEEK[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 static const char *MONTHS_OF_YEAR[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
-long longtime()
+unsigned long longtime()
 {
     struct timeb t;
     ftime(&t);

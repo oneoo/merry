@@ -4,7 +4,7 @@
 #define TIMEOUTS_LINK_RING_SIZE 6000
 static timeout_t *timeout_links[TIMEOUTS_LINK_RING_SIZE] = {0};
 static timeout_t *timeout_link_ends[TIMEOUTS_LINK_RING_SIZE] = {0};
-static long last_check_time = 0;
+static unsigned long last_check_time = 0;
 
 timeout_t *add_timeout(void *ptr, int timeout, timeout_handle_cb handle)
 {
@@ -41,7 +41,7 @@ timeout_t *add_timeout(void *ptr, int timeout, timeout_handle_cb handle)
 
 int check_timeouts()
 {
-    long l_now = (longtime() / 10);
+    unsigned long l_now = (longtime() / 10);
     timeout_t *m = NULL, *n = NULL;
     int b = 1;
 

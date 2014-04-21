@@ -5,7 +5,7 @@
 #ifndef __TIMES_H
 #define __TIMES_H
 
-long longtime();
+unsigned long longtime();
 time_t update_time();
 
 #endif
