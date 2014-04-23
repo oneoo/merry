@@ -328,6 +328,7 @@ void safe_process()
             int ret = fork();
 
             if(ret == 0) {
+                set_process_title("worker process", 0);
                 set_cpu_affinity(i);
                 _workerprocess_func[i](i);
             }
