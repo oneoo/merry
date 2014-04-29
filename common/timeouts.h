@@ -11,7 +11,7 @@ typedef void (*timeout_handle_cb)(void *ptr);
 typedef struct {
     timeout_handle_cb handle;
     void *ptr;
-    time_t timeout;
+    unsigned long timeout;
     void *uper;
     void *next;
 } timeout_t;

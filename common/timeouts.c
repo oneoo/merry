@@ -24,7 +24,7 @@ timeout_t *add_timeout(void *ptr, int timeout, timeout_handle_cb handle)
     n->uper = NULL;
     n->next = NULL;
 
-    int k = n->timeout % TIMEOUTS_LINK_RING_SIZE;
+    unsigned long k = n->timeout % TIMEOUTS_LINK_RING_SIZE;
 
     if(timeout_link_ends[k] == NULL) {
         timeout_links[k] = n;
@@ -50,7 +50,7 @@ int check_timeouts()
     }
 
     do {
-        int k = last_check_time % TIMEOUTS_LINK_RING_SIZE;
+        unsigned long k = last_check_time % TIMEOUTS_LINK_RING_SIZE;
 
         while(1) {
             b = 1;
@@ -88,7 +88,7 @@ void delete_timeout(timeout_t *n)
         return;
     }
 
-    int k = n->timeout % TIMEOUTS_LINK_RING_SIZE;
+    unsigned long k = n->timeout % TIMEOUTS_LINK_RING_SIZE;
 
     if(n->uper) {
         ((timeout_t *) n->uper)->next = n->next;
@@ -113,7 +113,7 @@ void update_timeout(timeout_t *n, int timeout)
         return;
     }
 
-    int k = n->timeout % TIMEOUTS_LINK_RING_SIZE;
+    unsigned long k = n->timeout % TIMEOUTS_LINK_RING_SIZE;
 
     if(n->uper) {
         ((timeout_t *) n->uper)->next = n->next;
