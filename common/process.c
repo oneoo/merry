@@ -162,16 +162,16 @@ char *init_process_title(int argc, const char **argv)
     for(i = 0; argv[i]; ++i) {
         memcpy(raw, argv[i], strlen(argv[i]) + 1);
         environ[i] = raw;
-        raw += strlen(environ[i]) + 1;
+        raw += strlen(argv[i]) + 1;
     }
 
     process_char_last = argv[0];
-
+    /*
     for(i = 0; i < argc; ++i) {
         process_char_last += strlen(argv[i]) + 1;
-    }
+    }*/
 
-    for(i = 0; environ[i]; ++i) {
+    for(i = 0; environ[i]; i++) {
         process_char_last += strlen(environ[i]) + 1;
     }
 
