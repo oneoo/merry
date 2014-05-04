@@ -3,6 +3,8 @@
 #if defined(__APPLE__) || defined(__FreeBSD__) || defined(BSD)
 #include <sys/event.h>
 struct kevent events[SE_SIZE] = {{0}}, ev[3] = {{0}};
+static unsigned long working_io_count = 0;
+static int in_loop = 0;
 
 int se_create(int event_size)
 {
@@ -13,6 +15,8 @@ int se_loop(int loop_fd, int waitout, se_waitout_proc_t waitout_proc)
 {
     int n = 0, i = 0, r = 1;
     se_ptr_t *ptr = NULL;
+
+    in_loop = 1;
 
     waitout *= 1000000;
 
@@ -39,11 +43,13 @@ int se_loop(int loop_fd, int waitout, se_waitout_proc_t waitout_proc)
             }
         }
 
-        if(!r || n == -1 || check_process_for_exit()) {
+        if(!r || (n == -1 && errno != EINTR) || (check_process_for_exit() && working_io_count == 0)) {
             break;
         }
 
     }
+
+    in_loop = 0;
 
     return 0;
 }
@@ -86,6 +92,8 @@ se_ptr_t *se_add(int loop_fd, int fd, void *data)
         ptr = NULL;
     }
 
+    working_io_count += in_loop;
+
     return ptr;
 }
 
@@ -98,6 +106,8 @@ int se_delete(se_ptr_t *ptr)
     ev_set_fd(ptr->loop_fd, ptr->fd, EV_DELETE, ptr);
 
     free(ptr);
+
+    working_io_count -= in_loop;
 
     return 0;
 }

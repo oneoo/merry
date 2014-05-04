@@ -7,6 +7,8 @@
 #endif
 
 static struct epoll_event events[SE_SIZE], ev;
+static unsigned long working_io_count = 0;
+static int in_loop = 0;
 
 int se_create(int event_size)
 {
@@ -17,6 +19,8 @@ int se_loop(int loop_fd, int waitout, se_waitout_proc_t waitout_proc)
 {
     int n = 0, i = 0, r = 1;
     se_ptr_t *ptr = NULL;
+
+    in_loop = 1;
 
     while(1) {
         update_time();
@@ -39,11 +43,13 @@ int se_loop(int loop_fd, int waitout, se_waitout_proc_t waitout_proc)
             }
         }
 
-        if(!r || n == -1 || check_process_for_exit()) {
+        if(!r || (n == -1 && errno != EINTR) || (check_process_for_exit() && working_io_count == 0)) {
             break;
         }
 
     }
+
+    in_loop = 0;
 
     return 0;
 }
@@ -72,6 +78,8 @@ se_ptr_t *se_add(int loop_fd, int fd, void *data)
         ptr = NULL;
     }
 
+    working_io_count += in_loop;
+
     return ptr;
 }
 
@@ -86,6 +94,8 @@ int se_delete(se_ptr_t *ptr)
     }
 
     free(ptr);
+
+    working_io_count -= in_loop;
 
     return 0;
 }

@@ -193,6 +193,10 @@ int signal_handler(int sig, siginfo_t *info, void *secret)
         case SIGTERM:
             _signal_handler = 1;
             break;
+
+        case SIGWINCH:
+            _signal_handler = 1;
+            break;
     }
 
     return 0;
@@ -223,10 +227,10 @@ void daemonize()
     sigemptyset(&mc.sa_mask);
     mc.sa_flags = SA_RESTART | SA_SIGINFO;
 
-    sigaction(SIGHUP, &mc, NULL);    /// 终端挂起
-    sigaction(SIGTERM, &mc, NULL);   /// 终止信号
+    sigaction(SIGHUP, &mc, NULL);    // 终端挂起
+    sigaction(SIGTERM, &mc, NULL);   // 终止信号
 
-    /// 忽略以下信号
+    // 忽略以下信号
     mc.sa_handler = SIG_IGN;
 
     sigaction(SIGCHLD, &mc, 0);
@@ -266,35 +270,41 @@ void attach_on_exit(void *fun)
     sigemptyset(&mc.sa_mask);
     mc.sa_flags = SA_RESTART | SA_SIGINFO;
 
-    sigaction(SIGHUP, &mc, NULL);     /// 终端挂起
-    sigaction(SIGINT, &mc, NULL);     /// CTRL+C
-    sigaction(SIGCHLD, &mc, NULL);    /// 子进程退出
+    sigaction(SIGHUP, &mc, NULL);     // 终端挂起
+    sigaction(SIGINT, &mc, NULL);     // CTRL+C
+    sigaction(SIGCHLD, &mc, NULL);    // 子进程退出
 
-    sigaction(SIGQUIT, &mc, NULL);    //键盘的退出键
-    sigaction(SIGILL, &mc, NULL);     //非法指令
-    sigaction(SIGABRT, &mc, NULL);    //由 abort(3) 发出的退出指令
-    sigaction(SIGFPE, &mc, NULL);     //浮点异常
+    sigaction(SIGQUIT, &mc, NULL);    // 键盘的退出键
+    sigaction(SIGILL, &mc, NULL);     // 非法指令
+    sigaction(SIGABRT, &mc, NULL);    // 由 abort(3) 发出的退出指令
+    sigaction(SIGFPE, &mc, NULL);     // 浮点异常
 
-    sigaction(SIGSEGV, &mc, NULL);    //无效的内存引用
-    sigaction(SIGALRM, &mc, NULL);    //由 alarm(2) 发出的信号
-    sigaction(SIGTERM, &mc, NULL);    //终止信号
-    sigaction(SIGUSR1, &mc, NULL);    //用户自定义
-    sigaction(SIGUSR2, &mc, NULL);    //用户自定义
+    sigaction(SIGSEGV, &mc, NULL);    // 无效的内存引用
+    sigaction(SIGALRM, &mc, NULL);    // 由 alarm(2) 发出的信号
+    sigaction(SIGTERM, &mc, NULL);    // 终止信号
+    sigaction(SIGUSR1, &mc, NULL);    // 用户自定义
+    sigaction(SIGUSR2, &mc, NULL);    // 用户自定义
 
-    sigaction(SIGBUS, &mc, NULL);     //总线错误（内存访问错误）
-    sigaction(SIGSYS, &mc, NULL);     //非法的系统调用
+    sigaction(SIGBUS, &mc, NULL);     // 总线错误（内存访问错误）
+    sigaction(SIGSYS, &mc, NULL);     // 非法的系统调用
 
-    sigaction(SIGTRAP, &mc, NULL);    //跟踪/断点自陷
-    sigaction(SIGXCPU, &mc, NULL);    //超过CPU时限
-    sigaction(SIGXFSZ, &mc, NULL);    //超过文件长度限制
-    sigaction(SIGIOT, &mc, NULL);     //IOT自陷
+    sigaction(SIGTRAP, &mc, NULL);    // 跟踪/断点自陷
+    sigaction(SIGXCPU, &mc, NULL);    // 超过CPU时限
+    sigaction(SIGXFSZ, &mc, NULL);    // 超过文件长度限制
+    sigaction(SIGIOT, &mc, NULL);     // IOT自陷
 
-    /// 忽略以下信号
+    // 忽略以下信号
     mc.sa_handler = SIG_IGN;
     sigaction(SIGPIPE, &mc, 0);
-    sigaction(SIGTSTP, &mc, 0);       //控制终端（tty）上按下停止键
-    sigaction(SIGTTIN, &mc, 0);       //后台进程企图从控制终端读
-    sigaction(SIGTTOU, &mc, 0);       //后台进程企图从控制终端写
+    sigaction(SIGTSTP, &mc, 0);       // 控制终端（tty）上按下停止键
+    sigaction(SIGTTIN, &mc, 0);       // 后台进程企图从控制终端读
+    sigaction(SIGTTOU, &mc, 0);       // 后台进程企图从控制终端写
+
+    mc.sa_handler = (void *)signal_handler;
+    sigemptyset(&mc.sa_mask);
+    mc.sa_flags = SA_SIGINFO;
+
+    sigaction(SIGWINCH, &mc, NULL);   // 优雅关闭
 }
 
 static int _workerprocess[200] = {0};
@@ -350,7 +360,7 @@ void start_master_main(void (*func)(), void (*onexit)())
         // master 的主要工作是维护子进程的状态，如退出了会自动重启
         if(check_process_for_exit()) {
             // 检查是否收到 kill 退出信号，如果是则关闭所有子进程后，再退出 master
-            kill(0, SIGTERM); // 关闭子进程
+            kill(0, SIGWINCH); // 优雅关闭子进程
 
             wait_for_child_process_exit();
 
