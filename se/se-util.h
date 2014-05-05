@@ -19,7 +19,7 @@
 #define _SE_UTIL_H
 
 #define _NTOHS(p) (((p)[0] << 8) | (p)[1])
-#define SE_CONNECT_TIMEOUT -1001
+#define SE_CONNECT_TIMEOUT -1002
 #define SE_DNS_QUERY_TIMEOUT -1001
 
 typedef void (*se_be_accept_cb)(int fd, struct in_addr client_addr);
