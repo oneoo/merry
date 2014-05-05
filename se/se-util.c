@@ -18,7 +18,7 @@ static int be_accept_f(se_ptr_t *ptr)
     struct sockaddr_in remote_addr;
     socklen_t addr_len = sizeof(struct sockaddr_in);
 
-    while(acc_trys++ < 3) {
+    while(acc_trys++ < 3 && !check_process_for_exit()) {
 #ifdef HAVE_ACCPEPT4
         client_fd = accept4(ptr->fd, (struct sockaddr *)&remote_addr, &addr_len, SOCK_NONBLOCK);
 
