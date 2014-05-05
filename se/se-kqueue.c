@@ -44,6 +44,10 @@ int se_loop(int loop_fd, int waitout, se_waitout_proc_t waitout_proc)
         }
 
         if(!r || (n == -1 && errno != EINTR) || (check_process_for_exit() && working_io_count == 0)) {
+            if(check_process_for_exit()) {
+                on_process_exit_handler(0, NULL, NULL);
+            }
+
             break;
         }
 

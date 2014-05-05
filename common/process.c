@@ -244,7 +244,7 @@ void daemonize()
 
 static void (*on_master_exit_func)() = NULL;
 static void (*on_worker_exit_func)() = NULL;
-static void on_process_exit_handler(int sig, siginfo_t *info, void *secret)
+void on_process_exit_handler(int sig, siginfo_t *info, void *secret)
 {
     if(on_worker_exit_func) {
         copy_buf_to_shm_log_buf(LOGF_T);

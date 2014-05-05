@@ -39,6 +39,7 @@ void start_master_main(void (*func)(), void (*onexit)());
 int check_process_for_exit();
 void daemonize();
 void attach_on_exit(void *fun);
+void on_process_exit_handler(int sig, siginfo_t *info, void *secret);
 void set_process_user(const char *user, const char *group);
 char *getarg(const char *key);
 int fork_process(void (*func)(int i));
