@@ -534,7 +534,7 @@ int se_connect(int loop_fd, const char *host, int port, int timeout, se_be_conne
 #ifndef linux
 
     if(port < 1) {
-        return 0;
+        return -1;
     }
 
 #endif
@@ -542,19 +542,19 @@ int se_connect(int loop_fd, const char *host, int port, int timeout, se_be_conne
     int fd = -1;
 
     if((fd = socket(port > 0 ? AF_INET : AF_UNIX, SOCK_STREAM, 0)) < 0) {
-        return 0;
+        return -1;
     }
 
     if(!se_set_nonblocking(fd , 1)) {
         close(fd);
-        return 0;
+        return -1;
     }
 
     _se_util_epdata_t *epd = malloc(sizeof(_se_util_epdata_t));
 
     if(!epd) {
         close(fd);
-        return 0;
+        return -1;
     }
 
     epd->port = port;
@@ -580,20 +580,21 @@ int se_connect(int loop_fd, const char *host, int port, int timeout, se_be_conne
 
         if(ret == 0) {
             se_delete(epd->se_ptr);
-            epd->connect_cb(data, fd);
+            //epd->connect_cb(data, fd);
             free(epd);
-            return 1;
+
+            return fd;
 
         } else if(ret == -1 && errno != EINPROGRESS) {
             close(epd->fd);
             se_delete(epd->se_ptr);
-            epd->connect_cb(data, -1);
+            //epd->connect_cb(data, -1);
             free(epd);
-            return 0;
+            return -1;
         }
 
         epd->timeout_ptr = add_timeout(epd, timeout, connect_timeout_handle);
-        return 1;
+        return -2; // be yield
     }
 
 #endif
@@ -617,7 +618,7 @@ int se_connect(int loop_fd, const char *host, int port, int timeout, se_be_conne
             //epd->timeout_ptr = add_timeout(epd, timeout, connect_timeout_handle);
             epd->loop_fd = loop_fd;
             se_dns_query(loop_fd, host, timeout, be_dns_query, epd);
-            return 1;
+            return -2; // be yield
         }
     }
 
@@ -628,18 +629,18 @@ int se_connect(int loop_fd, const char *host, int port, int timeout, se_be_conne
 
     if(ret == 0) {
         se_delete(epd->se_ptr);
-        epd->connect_cb(data, fd);
+        //epd->connect_cb(data, fd);
         free(epd);
-        return 1;
+        return fd;
 
     } else if(ret == -1 && errno != EINPROGRESS) {
         close(epd->fd);
         se_delete(epd->se_ptr);
-        epd->connect_cb(data, -1);
+        //epd->connect_cb(data, -1);
         free(epd);
-        return 0;
+        return -1;
     }
 
     epd->timeout_ptr = add_timeout(epd, timeout, connect_timeout_handle);
-    return 1;
+    return -2; // be yield
 }
