@@ -6,6 +6,7 @@ char hostname[1024];
 char process_chdir[924];
 char process_name[100];
 int is_daemon = 0;
+int is_master = 1;
 int process_count = 1;
 int pid = -1;
 
@@ -188,6 +189,7 @@ int signal_handler(int sig, siginfo_t *info, void *secret)
 {
     switch(sig) {
         case SIGHUP:
+            kill(0, SIGWINCH); // 优雅关闭子进程
             break;
 
         case SIGTERM:
@@ -195,7 +197,10 @@ int signal_handler(int sig, siginfo_t *info, void *secret)
             break;
 
         case SIGWINCH:
-            _signal_handler = 1;
+            if(is_master == 0) {
+                _signal_handler = 1;
+            }
+
             break;
     }
 
@@ -315,6 +320,7 @@ int fork_process(void (*func)())
     int ret = fork();
 
     if(ret == 0) {
+        is_master = 0;
         set_process_title("worker process", 0);
         set_cpu_affinity(_workerprocess_count);
         func(_workerprocess_count);
@@ -338,6 +344,7 @@ void safe_process()
             int ret = fork();
 
             if(ret == 0) {
+                is_master = 0;
                 set_process_title("worker process", 0);
                 set_cpu_affinity(i);
                 _workerprocess_func[i](i);
