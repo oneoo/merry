@@ -452,7 +452,7 @@ int se_dns_query(int loop_fd, const char *name, int timeout, se_be_dns_query_cb 
     return 1;
 }
 
-static int se_set_nonblocking(int fd, int nonblocking)
+int se_set_nonblocking(int fd, int nonblocking)
 {
     int flags = fcntl(fd, F_GETFL, 0);
 

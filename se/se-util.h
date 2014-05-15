@@ -25,6 +25,7 @@
 typedef void (*se_be_accept_cb)(int fd, struct in_addr client_addr);
 typedef void (*se_be_dns_query_cb)(void *data, struct sockaddr_in addr);
 typedef void (*se_be_connect_cb)(void *data, int fd);
+int se_set_nonblocking(int fd, int nonblocking);
 int se_accept(int loop_fd, int server_fd, se_be_accept_cb _be_accept);
 int se_dns_query(int loop_fd, const char *name, int timeout, se_be_dns_query_cb cb, void *data);
 int se_connect(int loop_fd, const char *host, int port, int timeout, se_be_connect_cb _be_connect, void *data);
