@@ -14,7 +14,6 @@
 #include <string.h>
 #include <math.h>
 #include <inttypes.h>
-#include <zlib.h>
 
 #include "smp.h"
 
