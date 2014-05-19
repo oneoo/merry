@@ -2,6 +2,7 @@
 #include <string.h>
 #include <time.h>
 #include "smp.h"
+#include "times.h"
 
 #ifndef _TIMEOUTS_H
 #define _TIMEOUTS_H

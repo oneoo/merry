@@ -14,8 +14,10 @@
 #include <string.h>
 #include <math.h>
 #include <inttypes.h>
+#include <unistd.h>
 
 #include "smp.h"
+#include "times.h"
 
 #define close(fd) do { if (fd >= 0) { close(fd); fd = -1; } } while (0)
 #define NOAGAIN (errno != EAGAIN && errno != EWOULDBLOCK)
