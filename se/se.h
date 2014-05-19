@@ -10,6 +10,7 @@
 #include "../common/timeouts.h"
 #include "../common/process.h"
 #include "../common/smp.h"
+#include "libeio/eio.h"
 
 #ifndef _SE_H
 #define _SE_H

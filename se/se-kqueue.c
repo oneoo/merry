@@ -6,8 +6,44 @@ struct kevent events[SE_SIZE] = {{0}}, ev[3] = {{0}};
 static unsigned long working_io_count = 0;
 static int in_loop = 0;
 
+/* libeio */
+static int eio_inited = 0;
+static int eio_respipe [2];
+void want_poll(void)
+{
+    char dummy = 0;
+    write(eio_respipe [1], &dummy, 1);
+}
+
+void done_poll(void)
+{
+    char dummy = 0;
+    read(eio_respipe [0], &dummy, 1);
+}
+
+void event_loop(void)
+{
+    struct pollfd pfd;
+    pfd.fd     = eio_respipe [0];
+    pfd.events = POLLIN;
+
+    while(eio_nreqs()) {
+        poll(&pfd, 1, -1);
+        eio_poll();
+    }
+}
+/* end */
+
 int se_create(int event_size)
 {
+    if(eio_inited == 0) {
+        eio_inited = 1;
+
+        if(pipe(eio_respipe) || eio_init(want_poll, done_poll)) {
+            eio_inited = 0;
+        }
+    }
+
     return kqueue();
 }
 
@@ -25,6 +61,7 @@ int se_loop(int loop_fd, int waitout, se_waitout_proc_t waitout_proc)
     while(1) {
         update_time();
         check_timeouts();
+        event_loop();
 
         if(waitout_proc) {
             r = waitout_proc();
