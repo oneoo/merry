@@ -128,6 +128,18 @@
 # define __EXTENSIONS__ 1
 #endif
 
+#ifdef linux
+#define HAVE_LINUX_FALLOCATE 1
+#define HAVE_LINUX_FIEMAP_H 1
+#define HAVE_LINUX_FS_H 1
+#define HAVE_LINUX_SPLICE 1
+#define HAVE_POSIX_FADVISE 1
+#define HAVE_PRCTL_SET_NAME 1
+#define HAVE_READAHEAD 1
+#define HAVE_SYNC_FILE_RANGE 1
+#define HAVE_SYS_PRCTL_H 1
+#define HAVE_SYS_SYNCFS 1
+#endif
 
 /* Version number of package */
 #define VERSION "1.0"
