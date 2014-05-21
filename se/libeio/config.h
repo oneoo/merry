@@ -138,7 +138,9 @@
 #define HAVE_READAHEAD 1
 #define HAVE_SYNC_FILE_RANGE 1
 #define HAVE_SYS_PRCTL_H 1
+#ifdef __NR_syncfs
 #define HAVE_SYS_SYNCFS 1
+#endif
 #endif
 
 /* Version number of package */
