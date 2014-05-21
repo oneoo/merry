@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdarg.h>
+#include <time.h>
+#include <sys/timeb.h>
 #include "shm.h"
 #include "smp.h"
 
@@ -20,6 +22,9 @@ typedef struct {
     int LOG_FD;
 
     shm_t *_shm_log_buf;
+    char *file;
+    char split_by;
+    struct tm last_split_tm;
     char *log_buf;
     long *log_buf_len;
     char _inner_log_buf[4096];

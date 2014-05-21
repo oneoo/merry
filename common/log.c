@@ -1,6 +1,7 @@
 #include "log.h"
 #include "times.h"
 #include <errno.h>
+#include <math.h>
 logf_t *LOGF_T = NULL;
 int LOG_LEVEL = NOTICE;
 
@@ -23,6 +24,7 @@ logf_t *open_log(const char *fn, int sz)
 
     char *p = strstr(fn, ",");
     char oldc = 0;
+    char split_by = 0;
 
     if(p) {
         if(strstr(p, "DEBUG")) {
@@ -54,6 +56,19 @@ logf_t *open_log(const char *fn, int sz)
             }
         }
 
+        if(strstr(p, ",h")) {
+            split_by = 'h';
+
+        } else if(strstr(p, ",d")) {
+            split_by = 'd';
+
+        } else if(strstr(p, ",w")) {
+            split_by = 'w';
+
+        } else if(strstr(p, ",m")) {
+            split_by = 'm';
+        }
+
         oldc = p[0];
         p[0] = '\0';
     }
@@ -65,10 +80,6 @@ logf_t *open_log(const char *fn, int sz)
 
     int fd = open(fn, O_APPEND | O_CREAT | O_WRONLY, 0644);
 
-    if(p) {
-        p[0] = oldc;
-    }
-
     logf_t *_logf = NULL;
 
     if(fd > -1) {
@@ -76,6 +87,15 @@ logf_t *open_log(const char *fn, int sz)
 
         if(_logf) {
             bzero(_logf, sizeof(logf_t));
+            _logf->file = malloc(strlen(fn));
+
+            if(_logf->file) {
+                memcpy(_logf->file, fn, strlen(fn));
+                _logf->file[strlen(fn)] = '\0';
+            }
+
+            _logf->split_by = split_by;
+            localtime_r(&now, &_logf->last_split_tm);
             _logf->LOG_FD = fd;
             _logf->_shm_log_buf = shm_malloc(sz + 4);
 
@@ -86,11 +106,14 @@ logf_t *open_log(const char *fn, int sz)
                 _logf->log_buf_size = sz > 4096 ? sz : 4096;
 
             } else {
-                LOGF(ERR, "malloc error (%s)", strerror(errno));
                 free(_logf);
                 _logf = NULL;
             }
         }
+    }
+
+    if(p) {
+        p[0] = oldc;
     }
 
     return _logf;
@@ -160,6 +183,35 @@ int sync_logs(logf_t *_logf)
 {
     if(!_logf || _logf->LOG_FD == -1) {
         return 0;
+    }
+
+    if(_logf->split_by) {
+        int dosplit = 0;
+
+        if(_logf->split_by == 'h' && _logf->last_split_tm.tm_hour != _now_lc.tm_hour) {
+            dosplit = 1;
+
+        } else if(_logf->split_by == 'd' && _logf->last_split_tm.tm_mday != _now_lc.tm_mday) {
+            dosplit = 1;
+
+        } else if(_logf->split_by == 'w' && _logf->last_split_tm.tm_wday != _now_lc.tm_wday) {
+            dosplit = 1;
+
+        } else if(_logf->split_by == 'm' && _logf->last_split_tm.tm_mon != _now_lc.tm_mon) {
+            dosplit = 1;
+
+        }
+
+        if(dosplit) {
+            sprintf(buf_4096, "%s-%04d-%02d-%02d-%02d", _logf->file,
+                    _now_lc.tm_year + 1900, _now_lc.tm_mon + 1, _now_lc.tm_mday, _now_lc.tm_hour);
+
+            if(rename(_logf->file, buf_4096) == 0) {
+                close(_logf->LOG_FD);
+                localtime_r(&now, &_logf->last_split_tm);
+                _logf->LOG_FD = open(_logf->file, O_APPEND | O_CREAT | O_WRONLY, 0644);
+            }
+        }
     }
 
     copy_buf_to_shm_log_buf(_logf);
