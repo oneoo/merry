@@ -126,6 +126,8 @@ void log_destory(logf_t *_logf)
     }
 
     sync_logs(_logf);
+    free(_logf->file);
+    _logf->file = NULL;
     shm_free(_logf->_shm_log_buf);
     _logf->_shm_log_buf = NULL;
 
@@ -202,7 +204,7 @@ int sync_logs(logf_t *_logf)
 
         }
 
-        if(dosplit) {
+        if(dosplit && _logf->file) {
             sprintf(buf_4096, "%s-%04d-%02d-%02d-%02d", _logf->file,
                     _now_lc.tm_year + 1900, _now_lc.tm_mon + 1, _now_lc.tm_mday, _now_lc.tm_hour);
 
