@@ -162,6 +162,7 @@ int get_dns_cache(const char *name, struct in_addr *addr)
     return 0;
 }
 
+#define _NTOHS(p) (((p)[0] << 8) | (p)[1])
 int be_get_dns_result(se_ptr_t *ptr)
 {
     _se_util_epdata_t *epd = ptr->data;
@@ -175,8 +176,7 @@ int be_get_dns_result(se_ptr_t *ptr)
         epd->fd = -1;
         se_delete(epd->se_ptr);
 
-        const unsigned char *p = NULL,
-                             *e = NULL;
+        const unsigned char *p = NULL, *e = NULL;
         dns_query_header_t *header = NULL;
         uint16_t type = 0;
         int found = 0, stop = 0, dlen = 0, nlen = 0;
@@ -186,6 +186,7 @@ int be_get_dns_result(se_ptr_t *ptr)
         if(ntohs(header->nqueries) != 1) {
             err = 1;
         }
+        header->tid = ntohs(header->tid);
 
         if(header->tid != epd->dns_tid) {
             err = 1;
@@ -193,10 +194,17 @@ int be_get_dns_result(se_ptr_t *ptr)
 
         /* Skip host name */
         if(err == 0) {
+            //static char hostname[1024] = {0};
+            //int hostname_len = 0;
+
             for(e = buf_4096 + len, nlen = 0, p = &header->data[0]; p < e
                 && *p != '\0'; p++) {
+                //hostname[hostname_len++] = (*p == 3 ? '.' : *p);
                 nlen++;
             }
+
+            //hostname[hostname_len] = '\0';
+            //printf("%s\n", hostname);
         }
 
         /* We sent query class 1, query type 1 */
@@ -385,7 +393,7 @@ int se_dns_query(int loop_fd, const char *name, int timeout, se_be_dns_query_cb 
     const char *s;
     char *p;
     header           = (dns_query_header_t *) buf_4096;
-    header->tid      = dns_tid;
+    header->tid      = htons(dns_tid);
     header->flags    = htons(0x100);
     header->nqueries = htons(1);
     header->nanswers = 0;
