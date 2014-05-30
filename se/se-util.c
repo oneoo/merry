@@ -186,6 +186,7 @@ int be_get_dns_result(se_ptr_t *ptr)
         if(ntohs(header->nqueries) != 1) {
             err = 1;
         }
+
         header->tid = ntohs(header->tid);
 
         if(header->tid != epd->dns_tid) {
