@@ -277,7 +277,7 @@ void attach_on_exit(void *fun)
 
     sigaction(SIGHUP, &mc, NULL);     // 终端挂起
     sigaction(SIGINT, &mc, NULL);     // CTRL+C
-    sigaction(SIGCHLD, &mc, NULL);    // 子进程退出
+    //sigaction(SIGCHLD, &mc, NULL);    // 子进程退出
 
     sigaction(SIGQUIT, &mc, NULL);    // 键盘的退出键
     sigaction(SIGILL, &mc, NULL);     // 非法指令
