@@ -178,9 +178,9 @@ void *smp_malloc(unsigned int size)
         }
 
         _I_PTR(p) = size;
-        _S_PTR((char*)p + _ISIZE) = 0;
+        _S_PTR((char *)p + _ISIZE) = 0;
 
-        return (char*)p + _I_SSIZE;
+        return (char *)p + _I_SSIZE;
     }
 
     short k = (size / 32) % (MAX_SMP_SIZE / 32);
@@ -198,11 +198,11 @@ void *smp_malloc(unsigned int size)
     } else {
         link_c[k] --;
         p = head[k];
-        head[k] = *(void **)((char*)p + _SSIZE);
+        head[k] = *(void **)((char *)p + _SSIZE);
 
     }
 
-    return (char*)p + _SSIZE;
+    return (char *)p + _SSIZE;
 }
 
 void *_smp_malloc(unsigned int size, char *f, int l)
@@ -225,11 +225,11 @@ void *smp_realloc(void *p, unsigned int _size)
 
     unsigned int old_size = 0;
 
-    if(_S_PTR((char*)p - _SSIZE) == 0) {
-        old_size = _I_PTR((char*)p - _I_SSIZE);
+    if(_S_PTR((char *)p - _SSIZE) == 0) {
+        old_size = _I_PTR((char *)p - _I_SSIZE);
 
     } else {
-        old_size = _S_PTR((char*)p - _SSIZE) * 32;
+        old_size = _S_PTR((char *)p - _SSIZE) * 32;
     }
 
     if(_size <= old_size) {
@@ -242,11 +242,11 @@ void *smp_realloc(void *p, unsigned int _size)
         return NULL;
     }
 
-    if(_S_PTR((char*)p - _SSIZE) == 0) {
-        memcpy(t, p, _I_PTR((char*)p - _I_SSIZE));
+    if(_S_PTR((char *)p - _SSIZE) == 0) {
+        memcpy(t, p, _I_PTR((char *)p - _I_SSIZE));
 
     } else {
-        memcpy(t, p, _S_PTR((char*)p - _SSIZE) * 32);
+        memcpy(t, p, _S_PTR((char *)p - _SSIZE) * 32);
     }
 
     smp_free(p);
@@ -259,11 +259,11 @@ void *_smp_realloc(void *p, unsigned int size, char *f, int l)
     old_l = 0;
     int old_size = 0;
 
-    if(_S_PTR((char*)p - _SSIZE) == 0) {
-        old_size = _I_PTR((char*)p - _I_SSIZE);
+    if(_S_PTR((char *)p - _SSIZE) == 0) {
+        old_size = _I_PTR((char *)p - _I_SSIZE);
 
     } else {
-        old_size = _S_PTR((char*)p - _SSIZE) * 32;
+        old_size = _S_PTR((char *)p - _SSIZE) * 32;
     }
 
     old_size = old_size / 32;
@@ -298,18 +298,18 @@ int smp_free(void *p)
         return 0;
     }
 
-    if(_S_PTR((char*)p - _SSIZE) == 0) {
+    if(_S_PTR((char *)p - _SSIZE) == 0) {
 #ifdef SMPDEBUG
         delete_in_smp_link(p, 0);
 #endif
-        free((char*)p - _I_SSIZE);
+        free((char *)p - _I_SSIZE);
         return 1;
     }
 
 #ifdef SMPDEBUG
     void *o = p;
 #endif
-    p = (char*)p - _SSIZE;
+    p = (char *)p - _SSIZE;
 
     short k = (_S_PTR(p)) % (MAX_SMP_SIZE / 32);
 #ifdef SMPDEBUG
@@ -321,7 +321,7 @@ int smp_free(void *p)
         return 1;
     }
 
-    *(void **)((char*)p + _SSIZE) = head[k];
+    *(void **)((char *)p + _SSIZE) = head[k];
 
     head[k] = p;
 
@@ -356,11 +356,11 @@ void smp_free_all()
             n = n->next;
             p = m->p;
 
-            if(_S_PTR((char*)p - _SSIZE) == 0) {
-                free(((char*)p - _I_SSIZE));
+            if(_S_PTR((char *)p - _SSIZE) == 0) {
+                free(((char *)p - _I_SSIZE));
 
             } else {
-                free(((char*)p - _SSIZE));
+                free(((char *)p - _SSIZE));
             }
 
             free(m);
@@ -374,7 +374,7 @@ void smp_free_all()
 
         while(np) {
             p = np;
-            np = *(void **)((char*)np + _SSIZE);
+            np = *(void **)((char *)np + _SSIZE);
             free(p);
         }
     }

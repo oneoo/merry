@@ -40,7 +40,7 @@ typedef struct rb_tree_node {
      */
     struct rb_tree_node *left;
 
-    /** 
+    /**
      * The right child (`NULL` if empty)
      */
     struct rb_tree_node *right;
@@ -244,7 +244,7 @@ static inline
 rb_result_t rb_tree_get_leftmost(struct rb_tree *tree,
                                  struct rb_tree_node **leftmost)
 {
-    if ( (NULL == tree) || (NULL == leftmost) ) {
+    if((NULL == tree) || (NULL == leftmost)) {
         return RB_BAD_ARG;
     }
 

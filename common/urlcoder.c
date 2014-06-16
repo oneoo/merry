@@ -1,82 +1,48 @@
 #include "urlcoder.h"
 
-uintptr_t urlencode(u_char *dst, u_char *src, size_t size, unsigned int type)
+size_t urlencode(u_char *dst, u_char *src, size_t size, unsigned int type)
 {
-    unsigned int n;
+    unsigned int n = 0;
     uint32_t *escape;
+    u_char *d = dst;
     static u_char hex[] = "0123456789ABCDEF";
     /* " ", "#", "%", "?", %00-%1F, %7F-%FF */
+    static uint32_t url[] = {
+        0xffffffff, /* 1111 1111 1111 1111 1111 1111 1111 1111 */
+
+        /* ?>=< ;:98 7654 3210 /.-, +*)( '&%$ #"! */
+        0xfc009fff, /* 1111 1100 0000 0000 1001 1000 0110 1111 */
+
+        /* _^]\ [ZYX WVUT SRQP ONML KJIH GFED CBA@ */
+        0x78000001, /* 0111 1000 0000 0000 0000 0000 0000 0001 */
+
+        /* ~}| {zyx wvut srqp onml kjih gfed cba` */
+        0xf8000001, /* 1111 1000 0000 0000 0000 0000 0000 0001 */
+
+        0xffffffff, /* 1111 1111 1111 1111 1111 1111 1111 1111 */
+        0xffffffff, /* 1111 1111 1111 1111 1111 1111 1111 1111 */
+        0xffffffff, /* 1111 1111 1111 1111 1111 1111 1111 1111 */
+        0xffffffff /* 1111 1111 1111 1111 1111 1111 1111 1111 */
+    };
+
     static uint32_t uri[] = {
         0xffffffff, /* 1111 1111 1111 1111 1111 1111 1111 1111 */
 
         /* ?>=< ;:98 7654 3210 /.-, +*)( '&%$ #"! */
-        0xfc00886d, /* 1111 1100 0000 0000 1000 1000 0110 1101 */
+        0xf8000ff5, /* 1111 1000 0000 0000 0000 1000 0110 0101 */
 
         /* _^]\ [ZYX WVUT SRQP ONML KJIH GFED CBA@ */
         0x78000000, /* 0111 1000 0000 0000 0000 0000 0000 0000 */
 
         /* ~}| {zyx wvut srqp onml kjih gfed cba` */
-        0xa8000000, /* 1010 1000 0000 0000 0000 0000 0000 0000 */
+        0xf8000001, /* 1111 1000 0000 0000 0000 0000 0000 0001 */
 
         0xffffffff, /* 1111 1111 1111 1111 1111 1111 1111 1111 */
         0xffffffff, /* 1111 1111 1111 1111 1111 1111 1111 1111 */
         0xffffffff, /* 1111 1111 1111 1111 1111 1111 1111 1111 */
         0xffffffff /* 1111 1111 1111 1111 1111 1111 1111 1111 */
     };
-    /* " ", "#", "%", "+", "?", %00-%1F, %7F-%FF */
-    static uint32_t args[] = {
-        0xffffffff, /* 1111 1111 1111 1111 1111 1111 1111 1111 */
 
-        /* ?>=< ;:98 7654 3210 /.-, +*)( '&%$ #"! */
-        0x80000829, /* 1000 0000 0000 0000 0000 1000 0010 1001 */
-
-        /* _^]\ [ZYX WVUT SRQP ONML KJIH GFED CBA@ */
-        0x00000000, /* 0000 0000 0000 0000 0000 0000 0000 0000 */
-
-        /* ~}| {zyx wvut srqp onml kjih gfed cba` */
-        0x80000000, /* 1000 0000 0000 0000 0000 0000 0000 0000 */
-
-        0xffffffff, /* 1111 1111 1111 1111 1111 1111 1111 1111 */
-        0xffffffff, /* 1111 1111 1111 1111 1111 1111 1111 1111 */
-        0xffffffff, /* 1111 1111 1111 1111 1111 1111 1111 1111 */
-        0xffffffff /* 1111 1111 1111 1111 1111 1111 1111 1111 */
-    };
-    /* " ", "#", """, "%", "'", %00-%1F, %7F-%FF */
-    static uint32_t html[] = {
-        0xffffffff, /* 1111 1111 1111 1111 1111 1111 1111 1111 */
-
-        /* ?>=< ;:98 7654 3210 /.-, +*)( '&%$ #"! */
-        0x000000ad, /* 0000 0000 0000 0000 0000 0000 1010 1101 */
-
-        /* _^]\ [ZYX WVUT SRQP ONML KJIH GFED CBA@ */
-        0x00000000, /* 0000 0000 0000 0000 0000 0000 0000 0000 */
-
-        /* ~}| {zyx wvut srqp onml kjih gfed cba` */
-        0x80000000, /* 1000 0000 0000 0000 0000 0000 0000 0000 */
-
-        0xffffffff, /* 1111 1111 1111 1111 1111 1111 1111 1111 */
-        0xffffffff, /* 1111 1111 1111 1111 1111 1111 1111 1111 */
-        0xffffffff, /* 1111 1111 1111 1111 1111 1111 1111 1111 */
-        0xffffffff /* 1111 1111 1111 1111 1111 1111 1111 1111 */
-    };
-    /* " ", """, "%", "'", %00-%1F, %7F-%FF */
-    static uint32_t refresh[] = {
-        0xffffffff, /* 1111 1111 1111 1111 1111 1111 1111 1111 */
-
-        /* ?>=< ;:98 7654 3210 /.-, +*)( '&%$ #"! */
-        0x00000085, /* 0000 0000 0000 0000 0000 0000 1000 0101 */
-
-        /* _^]\ [ZYX WVUT SRQP ONML KJIH GFED CBA@ */
-        0x00000000, /* 0000 0000 0000 0000 0000 0000 0000 0000 */
-
-        /* ~}| {zyx wvut srqp onml kjih gfed cba` */
-        0x80000000, /* 1000 0000 0000 0000 0000 0000 0000 0000 */
-
-        0xffffffff, /* 1111 1111 1111 1111 1111 1111 1111 1111 */
-        0xffffffff, /* 1111 1111 1111 1111 1111 1111 1111 1111 */
-        0xffffffff, /* 1111 1111 1111 1111 1111 1111 1111 1111 */
-        0xffffffff /* 1111 1111 1111 1111 1111 1111 1111 1111 */
-    };
     /* " ", "%", %00-%1F */
     static uint32_t memcached[] = {
         0xffffffff, /* 1111 1111 1111 1111 1111 1111 1111 1111 */
@@ -97,10 +63,10 @@ uintptr_t urlencode(u_char *dst, u_char *src, size_t size, unsigned int type)
     };
     /* mail_auth is the same as memcached */
     static uint32_t *map[] =
-    { uri, args, html, refresh, memcached, memcached };
+    { url, memcached, url, uri };
     escape = map[type];
 
-    if(dst == NULL) {
+    if(d == NULL) {
         /* find the number of the characters to be escaped */
         n = 0;
 
@@ -117,24 +83,27 @@ uintptr_t urlencode(u_char *dst, u_char *src, size_t size, unsigned int type)
     }
 
     while(size) {
-        if(escape[*src >> 5] & (1 << (*src & 0x1f))) {
-            *dst++ = '%';
-            *dst++ = hex[*src >> 4];
-            *dst++ = hex[*src & 0xf];
+        if((type == ESCAPE_URL || type == ESCAPE_URI) && *src == ' ') {
+            *d++ = '+';
+            src++;
+
+        } else if(escape[*src >> 5] & (1 << (*src & 0x1f))) {
+            *d++ = '%';
+            *d++ = hex[*src >> 4];
+            *d++ = hex[*src & 0xf];
             src++;
 
         } else {
-            *dst++ = *src++;
+            *d++ = *src++;
         }
 
         size--;
     }
 
-    return (uintptr_t) dst;
+    return d - dst;
 }
 
-/* XXX we also decode '+' to ' ' */
-void urldecode(u_char **dst, u_char **src, size_t size, unsigned int type)
+size_t urldecode(u_char **dst, u_char **src, size_t size, unsigned int type)
 {
     u_char *d, *s, ch, c, decoded;
     enum {
@@ -153,7 +122,7 @@ void urldecode(u_char **dst, u_char **src, size_t size, unsigned int type)
         switch(state) {
             case sw_usual:
                 if(ch == '?'
-                   && (type & (UNESCAPE_URI | UNESCAPE_REDIRECT))) {
+                   && (type & (UNESCAPE_URI))) {
                     *d++ = ch;
                     goto done;
                 }
@@ -163,7 +132,7 @@ void urldecode(u_char **dst, u_char **src, size_t size, unsigned int type)
                     break;
                 }
 
-                if(ch == '+') {
+                if(ch == '+' && !(type & RAW_UNESCAPE_URL)) {
                     *d++ = ' ';
                     break;
                 }
@@ -196,19 +165,6 @@ void urldecode(u_char **dst, u_char **src, size_t size, unsigned int type)
 
                 if(ch >= '0' && ch <= '9') {
                     ch = (u_char)((decoded << 4) + ch - '0');
-
-                    if(type & UNESCAPE_REDIRECT) {
-                        if(ch > '%' && ch < 0x7f) {
-                            *d++ = ch;
-                            break;
-                        }
-
-                        *d++ = '%';
-                        *d++ = * (s - 2);
-                        *d++ = * (s - 1);
-                        break;
-                    }
-
                     *d++ = ch;
                     break;
                 }
@@ -228,23 +184,6 @@ void urldecode(u_char **dst, u_char **src, size_t size, unsigned int type)
                         break;
                     }
 
-                    if(type & UNESCAPE_REDIRECT) {
-                        if(ch == '?') {
-                            *d++ = ch;
-                            goto done;
-                        }
-
-                        if(ch > '%' && ch < 0x7f) {
-                            *d++ = ch;
-                            break;
-                        }
-
-                        *d++ = '%';
-                        *d++ = * (s - 2);
-                        *d++ = * (s - 1);
-                        break;
-                    }
-
                     *d++ = ch;
                     break;
                 }
@@ -255,6 +194,5 @@ void urldecode(u_char **dst, u_char **src, size_t size, unsigned int type)
     }
 
 done:
-    *dst = d;
-    *src = s;
+    return d - *dst;
 }
