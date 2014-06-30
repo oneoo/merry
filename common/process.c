@@ -11,6 +11,7 @@ int process_count = 1;
 int pid = -1;
 
 int server_fd = 0;
+int ssl_server_fd = 0;
 int loop_fd = 0;
 
 extern logf_t *LOGF_T;

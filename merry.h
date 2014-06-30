@@ -48,6 +48,7 @@ extern int process_count;
 extern int pid;
 
 extern int server_fd;
+extern int ssl_server_fd;
 extern int loop_fd;
 extern int se_errno;
 

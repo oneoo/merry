@@ -2,6 +2,8 @@
 
 char bind_addr[20] = {0};
 int bind_port = 1111;
+char ssl_bind_addr[20] = {0};
+int ssl_bind_port = 0;
 const char *program_name = NULL;
 
 int merry_start(int argc, const char **argv, void (*help)(), void (*master)(), void (*onexit)(), void (*worker)(),
@@ -76,8 +78,40 @@ int merry_start(int argc, const char **argv, void (*help)(), void (*master)(), v
         }
     }
 
+    sprintf(ssl_bind_addr, "0.0.0.0");
+
+    if(getarg("ssl-bind")) {
+        if(strstr(getarg("ssl-bind"), ".")) {
+            sprintf(ssl_bind_addr, "%s", getarg("ssl-bind"));
+            _port = strstr(ssl_bind_addr, ":");
+
+            if(_port) {
+                ssl_bind_addr[strlen(ssl_bind_addr) - strlen(_port)] = '\0';
+                _port = _port + 1;
+
+                if(atoi(_port) > 0 && atoi(_port) < 99999) {
+                    ssl_bind_port = atoi(_port);
+                }
+            }
+
+        } else {
+            int _be_port = atoi(getarg("ssl-bind"));
+
+            if(_be_port > 0) {
+                ssl_bind_port = _be_port;
+            }
+        }
+    }
+
     server_fd = network_bind(bind_addr, bind_port);
-    LOGF(INFO, "bind %s:%d", bind_addr, bind_port);
+
+    if(ssl_bind_port > 0) {
+        ssl_server_fd = network_bind(ssl_bind_addr, 4443);
+        LOGF(INFO, "bind %s:%d ssl:%d", bind_addr, bind_port, ssl_bind_port);
+
+    } else {
+        LOGF(INFO, "bind %s:%d", bind_addr, bind_port);
+    }
 
     for(i = 0; i < process_count; i++) {
         if(is_daemon == 1) {
