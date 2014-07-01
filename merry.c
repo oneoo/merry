@@ -106,7 +106,7 @@ int merry_start(int argc, const char **argv, void (*help)(), void (*master)(), v
     server_fd = network_bind(bind_addr, bind_port);
 
     if(ssl_bind_port > 0) {
-        ssl_server_fd = network_bind(ssl_bind_addr, 4443);
+        ssl_server_fd = network_bind(ssl_bind_addr, ssl_bind_port);
         LOGF(INFO, "bind %s:%d ssl:%d", bind_addr, bind_port, ssl_bind_port);
 
     } else {
