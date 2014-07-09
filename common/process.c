@@ -219,10 +219,12 @@ void daemonize()
     i = fork();
 
     if(i < 0) {
+        kill(getppid(), SIGINT);
         exit(1);
     }
 
     if(i > 0) {
+        kill(getppid(), SIGINT);
         exit(0);
     }
 
