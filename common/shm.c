@@ -1,5 +1,6 @@
 #include "shm.h"
 #include <stdio.h>
+#include <errno.h>
 
 extern char process_chdir[924];
 extern int is_daemon;
@@ -80,7 +81,25 @@ int shm_lock(shm_t *shm)
     sembuf.sem_num = 0;
     sembuf.sem_op = -1;
     sembuf.sem_flg = 0;
-    return semop(shm->sem_id, &sembuf, 1);
+
+    int ret = 0;
+
+    while(1) {
+        ret = semop(shm->sem_id, &sembuf, 1);
+
+        if(ret < 0) {
+            if(errno == EINTR) {
+                continue;
+
+            } else {
+                return -1;
+            }
+        }
+
+        break;
+    }
+
+    return ret;
 }
 
 /* V - increment semaphore and signal */
@@ -95,5 +114,23 @@ int shm_unlock(shm_t *shm)
     sembuf.sem_num = 0;
     sembuf.sem_op =  1;
     sembuf.sem_flg = 0;
-    return semop(shm->sem_id, &sembuf, 1);
+
+    int ret = 0;
+
+    while(1) {
+        ret = semop(shm->sem_id, &sembuf, 1);
+
+        if(ret < 0) {
+            if(errno == EINTR) {
+                continue;
+
+            } else {
+                return -1;
+            }
+        }
+
+        break;
+    }
+
+    return ret;
 }
