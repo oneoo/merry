@@ -144,6 +144,7 @@ int se_delete(se_ptr_t *ptr)
 int se_be_read(se_ptr_t *ptr, se_rw_proc_t func)
 {
     ptr->rfunc = func;
+    ptr->wfunc = NULL;
 
     ev.data.ptr = ptr;
     ev.events = EPOLLIN | EPOLLRDHUP | EPOLLHUP;
@@ -153,6 +154,7 @@ int se_be_read(se_ptr_t *ptr, se_rw_proc_t func)
 
 int se_be_write(se_ptr_t *ptr, se_rw_proc_t func)
 {
+    ptr->rfunc = NULL;
     ptr->wfunc = func;
 
     ev.data.ptr = ptr;
@@ -164,6 +166,7 @@ int se_be_write(se_ptr_t *ptr, se_rw_proc_t func)
 int se_be_pri(se_ptr_t *ptr, se_rw_proc_t func)
 {
     ptr->rfunc = func;
+    ptr->wfunc = NULL;
 
     ev.data.ptr = ptr;
     ev.events = EPOLLPRI;
