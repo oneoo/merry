@@ -72,10 +72,10 @@ int se_loop(int loop_fd, int waitout, se_waitout_proc_t waitout_proc)
         for(i = 0; i < n; i++) {
             ptr = events[i].data.ptr;
 
-            if(events[i].events & EPOLLIN && ptr->rfunc) {
+            if(events[i].events & (EPOLLIN | EPOLLHUP | EPOLLERR) && ptr->rfunc) {
                 ptr->rfunc(ptr);
 
-            } else if(events[i].events & EPOLLOUT && ptr->wfunc) {
+            } else if(events[i].events & (EPOLLOUT | EPOLLHUP | EPOLLERR) && ptr->wfunc) {
                 ptr->wfunc(ptr);
             }
         }
@@ -147,7 +147,7 @@ int se_be_read(se_ptr_t *ptr, se_rw_proc_t func)
     ptr->wfunc = NULL;
 
     ev.data.ptr = ptr;
-    ev.events = EPOLLIN | EPOLLRDHUP | EPOLLHUP;
+    ev.events = EPOLLIN | EPOLLRDHUP | EPOLLHUP | EPOLLERR;
 
     return epoll_ctl(ptr->loop_fd, EPOLL_CTL_MOD, ptr->fd, &ev);
 }
@@ -158,7 +158,7 @@ int se_be_write(se_ptr_t *ptr, se_rw_proc_t func)
     ptr->wfunc = func;
 
     ev.data.ptr = ptr;
-    ev.events = EPOLLOUT | EPOLLRDHUP | EPOLLHUP;
+    ev.events = EPOLLOUT | EPOLLRDHUP | EPOLLHUP | EPOLLERR;
 
     return epoll_ctl(ptr->loop_fd, EPOLL_CTL_MOD, ptr->fd, &ev);
 }
@@ -180,7 +180,7 @@ int se_be_rw(se_ptr_t *ptr, se_rw_proc_t rfunc, se_rw_proc_t wfunc)
     ptr->wfunc = wfunc;
 
     ev.data.ptr = ptr;
-    ev.events = EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLHUP;
+    ev.events = EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLHUP | EPOLLERR;
 
     return epoll_ctl(ptr->loop_fd, EPOLL_CTL_MOD, ptr->fd, &ev);
 }
