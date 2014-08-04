@@ -171,6 +171,7 @@ int be_get_dns_result(se_ptr_t *ptr)
 
     while((len = recvfrom(epd->fd, buf_4096, 2048, 0, NULL, NULL)) > 0 && len >= sizeof(dns_query_header_t)) {
         delete_timeout(epd->timeout_ptr);
+        epd->timeout_ptr = NULL;
         int _dns_query_fd = epd->fd;
         close(epd->fd);
         epd->fd = -1;
@@ -267,6 +268,12 @@ int be_get_dns_result(se_ptr_t *ptr)
             add_dns_cache(epd->dns_query_name, rt_addr.sin_addr, 0);
 
             epd->cb(epd->data, rt_addr);
+            free(epd);
+
+            return 0;
+
+        } else {
+            epd->cb(epd->data, null_addr);
             free(epd);
 
             return 0;
@@ -433,19 +440,14 @@ int se_dns_query(int loop_fd, const char *name, int timeout, se_be_dns_query_cb 
     epd->se_ptr = se_add(loop_fd, epd->fd, epd);
     se_be_read(epd->se_ptr, be_get_dns_result);
 
-    if((m = sendto(
-                epd->fd,
-                buf_4096,
-                n,
-                0,
-                (struct sockaddr *) &dns_servers[epd->fd % dns_server_count],
-                sizeof(struct sockaddr)
-            )
-       ) != n) {
-        se_delete(epd->se_ptr);
-        close(epd->fd);
-        return 0;
-    }
+    sendto(
+        epd->fd,
+        buf_4096,
+        n,
+        0,
+        (struct sockaddr *) &dns_servers[epd->fd % dns_server_count],
+        sizeof(struct sockaddr)
+    );
 
     sendto(
         epd->fd,
@@ -521,6 +523,9 @@ static void be_dns_query(void *data, struct sockaddr_in addr)
     se_be_write(epd->se_ptr, __be_connect);
     addr.sin_port = htons(epd->port);
 
+    delete_timeout(epd->timeout_ptr);
+    epd->timeout_ptr = NULL;
+    epd->timeout_ptr = add_timeout(epd, 3000, connect_timeout_handle);
     int ret = connect(epd->fd, (struct sockaddr *) &addr, sizeof(struct sockaddr_in));
 
     if(ret == 0) {
