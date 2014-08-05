@@ -525,7 +525,7 @@ static void be_dns_query(void *data, struct sockaddr_in addr)
 
     delete_timeout(epd->timeout_ptr);
     epd->timeout_ptr = NULL;
-    epd->timeout_ptr = add_timeout(epd, 3000, connect_timeout_handle);
+    
     int ret = connect(epd->fd, (struct sockaddr *) &addr, sizeof(struct sockaddr_in));
 
     if(ret == 0) {
@@ -541,6 +541,8 @@ static void be_dns_query(void *data, struct sockaddr_in addr)
         free(epd);
         return;
     }
+
+    epd->timeout_ptr = add_timeout(epd, 3000, connect_timeout_handle);
 }
 
 int se_connect(int loop_fd, const char *host, int port, int timeout, se_be_connect_cb _be_connect, void *data)
