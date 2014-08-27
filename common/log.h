@@ -24,6 +24,7 @@ typedef struct {
     shm_t *_shm_log_buf;
     char *file;
     char split_by;
+    short auto_delete;
     struct tm last_split_tm;
     char *log_buf;
     long *log_buf_len;

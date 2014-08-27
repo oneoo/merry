@@ -25,6 +25,7 @@ logf_t *open_log(const char *fn, int sz)
     char *p = strstr(fn, ",");
     char oldc = 0;
     char split_by = 0;
+    short auto_delete = 0;
 
     if(p) {
         if(strstr(p, "DEBUG")) {
@@ -69,6 +70,10 @@ logf_t *open_log(const char *fn, int sz)
             split_by = 'm';
         }
 
+        if(split_by != 0) {
+            auto_delete = atoi(strstr(p + 1, ",") + 2);
+        }
+
         oldc = p[0];
         p[0] = '\0';
     }
@@ -95,6 +100,7 @@ logf_t *open_log(const char *fn, int sz)
             }
 
             _logf->split_by = split_by;
+            _logf->auto_delete = auto_delete;
             localtime_r(&now, &_logf->last_split_tm);
             _logf->LOG_FD = fd;
             _logf->_shm_log_buf = shm_malloc(sz + 4);
@@ -189,29 +195,43 @@ int sync_logs(logf_t *_logf)
 
     if(_logf->split_by) {
         int dosplit = 0;
+        time_t old = now;
 
         if(_logf->split_by == 'h' && _logf->last_split_tm.tm_hour != _now_lc.tm_hour) {
             dosplit = 1;
+            old -= _logf->auto_delete * 3600;
 
         } else if(_logf->split_by == 'd' && _logf->last_split_tm.tm_mday != _now_lc.tm_mday) {
             dosplit = 1;
+            old -= _logf->auto_delete * 86400;
 
         } else if(_logf->split_by == 'w' && _logf->last_split_tm.tm_wday != _now_lc.tm_wday) {
             dosplit = 1;
+            old -= _logf->auto_delete * 604800;
 
         } else if(_logf->split_by == 'm' && _logf->last_split_tm.tm_mon != _now_lc.tm_mon) {
             dosplit = 1;
+            old -= _logf->auto_delete * 2592000;
 
         }
 
         if(dosplit && _logf->file) {
-            sprintf(buf_4096, "%s-%04d-%02d-%02d-%02d", _logf->file,
-                    _now_lc.tm_year + 1900, _now_lc.tm_mon + 1, _now_lc.tm_mday, _now_lc.tm_hour);
+            sprintf(buf_4096, "%s-%04d-%02d-%02d-%02d", _logf->file, _now_lc.tm_year + 1900, _now_lc.tm_mon + 1, _now_lc.tm_mday,
+                    _now_lc.tm_hour);
 
             if(rename(_logf->file, buf_4096) == 0) {
                 close(_logf->LOG_FD);
                 localtime_r(&now, &_logf->last_split_tm);
                 _logf->LOG_FD = open(_logf->file, O_APPEND | O_CREAT | O_WRONLY, 0644);
+            }
+
+            if(_logf->auto_delete > 0) {
+                struct tm _old_lc = {0};
+                localtime_r(&old, &_old_lc);
+                sprintf(buf_4096, "rm -f %s-%04d-%02d-%02d-%02d &", _logf->file, _old_lc.tm_year + 1900, _old_lc.tm_mon + 1,
+                        _old_lc.tm_mday, _old_lc.tm_hour);
+                FILE *fp = popen(buf_4096, "r");
+                pclose(fp);
             }
         }
     }

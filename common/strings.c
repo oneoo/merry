@@ -167,10 +167,6 @@ char *_ultostr(void *str, unsigned long val, unsigned base)
         return NULL;
     }
 
-    if(val < 0) {
-        *_str++ = '-';
-    }
-
     r = _uldiv(val, base);
 
     if(r.quot > 0) {

@@ -396,7 +396,7 @@ int se_dns_query(int loop_fd, const char *name, int timeout, se_be_dns_query_cb 
     int opt = 1;
     ioctl(epd->fd, FIONBIO, &opt);
 
-    int i = 0, n = 0, m = 0;
+    int i = 0, n = 0;
     dns_query_header_t *header = NULL;
     const char *s;
     char *p;
@@ -525,7 +525,7 @@ static void be_dns_query(void *data, struct sockaddr_in addr)
 
     delete_timeout(epd->timeout_ptr);
     epd->timeout_ptr = NULL;
-    
+
     int ret = connect(epd->fd, (struct sockaddr *) &addr, sizeof(struct sockaddr_in));
 
     if(ret == 0) {

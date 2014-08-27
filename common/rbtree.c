@@ -279,6 +279,7 @@ done:
 }
 
 /* Helper function to get a node's sibling */
+/*
 static inline
 struct rb_tree_node *__helper_get_sibling(struct rb_tree_node *node)
 {
@@ -295,6 +296,7 @@ struct rb_tree_node *__helper_get_sibling(struct rb_tree_node *node)
         return parent->left;
     }
 }
+*/
 
 /* Helper function to get a node's grandparent */
 static inline
@@ -310,6 +312,7 @@ struct rb_tree_node *__helper_get_grandparent(struct rb_tree_node *node)
 }
 
 /* Helper function to get a node's uncle */
+/*
 static inline
 struct rb_tree_node *__helper_get_uncle(struct rb_tree_node *node)
 {
@@ -326,7 +329,7 @@ struct rb_tree_node *__helper_get_uncle(struct rb_tree_node *node)
         return grandparent->left;
     }
 }
-
+*/
 /* Helper function to do a left rotation of a given node */
 static inline
 void __helper_rotate_left(struct rb_tree *tree,
