@@ -26,7 +26,7 @@ int merry_start(int argc, const char **argv, void (*help)(), void (*master)(), v
     }
 
     if(getarg("log")) {
-        LOGF_T = open_log(getarg("log"), 40960); // filename, bufsize
+        LOGF_T = open_log(getarg("log"), 65536); // filename, bufsize
     }
 
     /// 把进程放入后台

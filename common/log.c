@@ -103,13 +103,13 @@ logf_t *open_log(const char *fn, int sz)
             _logf->auto_delete = auto_delete;
             localtime_r(&now, &_logf->last_split_tm);
             _logf->LOG_FD = fd;
-            _logf->_shm_log_buf = shm_malloc(sz + 4);
+            _logf->_shm_log_buf = shm_malloc(sz + sizeof(long));
 
             if(_logf->_shm_log_buf) {
-                _logf->log_buf_len = _logf->_shm_log_buf->p + sz;
+                _logf->log_buf_len = (long *)((char *)_logf->_shm_log_buf->p + sz);
                 *(_logf->log_buf_len) = 0;
                 _logf->log_buf = _logf->_shm_log_buf->p;
-                _logf->log_buf_size = sz > 4096 ? sz : 4096;
+                _logf->log_buf_size = sz > LOG_BUF_SIZE * 2 ? sz : LOG_BUF_SIZE * 2;
 
             } else {
                 free(_logf);
@@ -158,6 +158,7 @@ void copy_buf_to_shm_log_buf(logf_t *_logf)
 
     memcpy(_logf->log_buf + (*_logf->log_buf_len), _logf->_inner_log_buf, _logf->_inner_log_buf_len);
     *(_logf->log_buf_len) += _logf->_inner_log_buf_len;
+
     shm_unlock(_logf->_shm_log_buf);
 
     _logf->_inner_log_buf_len = 0;
@@ -176,7 +177,7 @@ int log_writef(logf_t *_logf, const char *fmt, ...)
 
     update_time();
 
-    if(now > _logf->last_wtime || _logf->_inner_log_buf_len + n > 4096) {
+    if(now > _logf->last_wtime || _logf->_inner_log_buf_len + n >= LOG_BUF_SIZE) {
         _logf->last_wtime = now;
         copy_buf_to_shm_log_buf(_logf);
     }

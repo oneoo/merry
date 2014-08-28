@@ -18,6 +18,7 @@
 #define ALERT 5
 #define ERR 6
 
+#define LOG_BUF_SIZE 8192
 typedef struct {
     int LOG_FD;
 
@@ -28,7 +29,7 @@ typedef struct {
     struct tm last_split_tm;
     char *log_buf;
     long *log_buf_len;
-    char _inner_log_buf[4096];
+    char _inner_log_buf[LOG_BUF_SIZE];
     int _inner_log_buf_len;
     int log_buf_size;
     long last_wtime;

@@ -25,6 +25,8 @@ shm_t *shm_malloc(size_t size)
         return NULL;
     }
 
+    memset(p, 0, size + sizeof(int));
+
     if((sem_id = semget(ftok(process_chdir, shm_ftok_id), 1, oflag)) < 0) {
         if(shmctl(shm_id, IPC_RMID, NULL) == -1) {
             perror("shmctl del error\n");
