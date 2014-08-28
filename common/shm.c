@@ -14,7 +14,7 @@ shm_t *shm_malloc(size_t size)
     /* create and init a shared memory segment for the counter */
     oflag = 0600 | IPC_CREAT;
 
-    if((shm_id = shmget(ftok(process_chdir, shm_ftok_id), size, oflag)) < 0) {
+    if((shm_id = shmget(ftok(process_chdir, shm_ftok_id), size + sizeof(int), oflag)) < 0) {
         perror("shmget error\n");
         return NULL;
     }
@@ -43,7 +43,7 @@ shm_t *shm_malloc(size_t size)
     shm_t *o = malloc(sizeof(shm_t));
     o->shm_id = shm_id;
     o->sem_id = sem_id;
-    o->p = p;
+    o->p = p + sizeof(int);
 
     shm_ftok_id++;
 
@@ -101,7 +101,7 @@ int shm_lock(shm_t *shm)
 
     return ret;
     */
-    gcc_lock((int *)shm->p);
+    gcc_lock((int *)((char *)shm->p - sizeof(int)));
     return 1;
 }
 
@@ -137,6 +137,6 @@ int shm_unlock(shm_t *shm)
 
     return ret;
     */
-    gcc_unlock((int *)shm->p);
+    gcc_unlock((int *)((char *)shm->p - sizeof(int)));
     return 1;
 }
