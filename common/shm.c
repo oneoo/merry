@@ -69,13 +69,13 @@ void shm_free(shm_t *shm)
     shm = NULL;
 }
 
-/* P - decrement semaphore and wait */
 int shm_lock(shm_t *shm)
 {
     if(is_daemon == 0) {
         return 1;
     }
 
+    /*
     static struct sembuf sembuf;
 
     sembuf.sem_num = 0;
@@ -100,15 +100,18 @@ int shm_lock(shm_t *shm)
     }
 
     return ret;
+    */
+    gcc_lock((int *)shm->p);
+    return 1;
 }
 
-/* V - increment semaphore and signal */
 int shm_unlock(shm_t *shm)
 {
     if(is_daemon == 0) {
         return 1;
     }
 
+    /*
     static struct sembuf sembuf;
 
     sembuf.sem_num = 0;
@@ -133,4 +136,7 @@ int shm_unlock(shm_t *shm)
     }
 
     return ret;
+    */
+    gcc_unlock((int *)shm->p);
+    return 1;
 }
