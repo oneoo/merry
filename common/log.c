@@ -70,7 +70,7 @@ logf_t *open_log(const char *fn, int sz)
             split_by = 'm';
         }
 
-        if(split_by != 0) {
+        if(split_by != 0 && strstr(p + 1, ",")) {
             auto_delete = atoi(strstr(p + 1, ",") + 2);
         }
 
