@@ -14,11 +14,15 @@ int se_errno = 0;
 
 static int be_accept_f(se_ptr_t *ptr)
 {
-    int acc_trys = 0, client_fd = -1;
-    struct sockaddr_in remote_addr;
-    socklen_t addr_len = sizeof(struct sockaddr_in);
+    static int client_fd = -1;
+    static struct sockaddr_in remote_addr;
+    static socklen_t addr_len = sizeof(struct sockaddr_in);
 
-    while(acc_trys++ < 3 && !check_process_for_exit()) {
+    if(check_process_for_exit()) {
+        return 1;
+    }
+
+    while(1) {
 #ifdef HAVE_ACCPEPT4
         client_fd = accept4(ptr->fd, (struct sockaddr *)&remote_addr, &addr_len, SOCK_NONBLOCK);
 
@@ -30,18 +34,14 @@ static int be_accept_f(se_ptr_t *ptr)
         client_fd = accept(ptr->fd, (struct sockaddr *) &remote_addr, &addr_len);
 #endif
 
-        if(client_fd < 0 && errno != EAGAIN && errno != EWOULDBLOCK) {
+        if(client_fd < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
             break;
 
         }
 
-        if(client_fd < 0) {
-            continue;
+        if(client_fd > 0) {
+            ((se_be_accept_cb)ptr->data)(client_fd, remote_addr.sin_addr);
         }
-
-        ((se_be_accept_cb)ptr->data)(client_fd, remote_addr.sin_addr);
-
-        acc_trys = 0;
     }
 
     return 1;
