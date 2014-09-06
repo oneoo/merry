@@ -317,6 +317,7 @@ int smp_free(void *p)
 #endif
 
     if(link_c[k]++ >= MAX_SMP_SIZE / (_S_PTR(p) * 32)) {
+        link_c[k] --;
         free(p);
         return 1;
     }
