@@ -229,8 +229,16 @@ int sync_logs(logf_t *_logf)
             if(_logf->auto_delete > 0) {
                 struct tm _old_lc = {0};
                 localtime_r(&old, &_old_lc);
-                sprintf(buf_4096, "rm -f %s-%04d-%02d-%02d-%02d &", _logf->file, _old_lc.tm_year + 1900, _old_lc.tm_mon + 1,
-                        _old_lc.tm_mday, _old_lc.tm_hour);
+
+                if(_logf->split_by == 'h') {
+                    sprintf(buf_4096, "rm -f %s-%04d-%02d-%02d-%02d &", _logf->file, _old_lc.tm_year + 1900, _old_lc.tm_mon + 1,
+                            _old_lc.tm_mday, _old_lc.tm_hour);
+
+                } else {
+                    sprintf(buf_4096, "rm -f %s-%04d-%02d-%02d-* &", _logf->file, _old_lc.tm_year + 1900, _old_lc.tm_mon + 1,
+                            _old_lc.tm_mday);
+                }
+
                 FILE *fp = popen(buf_4096, "r");
                 pclose(fp);
             }
