@@ -3,7 +3,8 @@
 simple memory pool
 */
 
-#define MAX_SMP_SIZE 2048*32 // total size = 2048*2048*32 = 128MB, max block = 64KB
+//#define MAX_SMP_SIZE 2048*32 // total size = 2048*2048*32 = 128MB, max block = 64KB
+#define MAX_SMP_SIZE 4096*32 // total size = 4096*4096*32 = 512MB, max block = 128KB
 
 /*
     ---------------------------
@@ -316,7 +317,19 @@ int smp_free(void *p)
     delete_in_smp_link(o, (_S_PTR(p)) * 32);
 #endif
 
-    if(link_c[k]++ >= MAX_SMP_SIZE / (_S_PTR(p) * 32)) {
+    int max = 0;
+
+    if(_S_PTR(p) == 128) { // 4096
+        max = 2000;
+
+    } else if(_S_PTR(p) == 256) { // 8192
+        max = 1000;
+
+    } else {
+        max = MAX_SMP_SIZE / (_S_PTR(p) * 32);
+    }
+
+    if(link_c[k]++ >= max) {
         link_c[k] --;
         free(p);
         return 1;
