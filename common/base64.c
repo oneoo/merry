@@ -1,8 +1,7 @@
 #include "base64.h"
 
-static char basis64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
-int base64_encode(unsigned char *dst, const unsigned char *src, int len)
+static int base64_encode_internal(unsigned char *dst, const unsigned char *src, int len, const unsigned char *basis,
+                                  int padding)
 {
     unsigned char *d;
     const unsigned char *s;
@@ -10,33 +9,49 @@ int base64_encode(unsigned char *dst, const unsigned char *src, int len)
     d = dst;
 
     while(len > 2) {
-        *d++ = basis64[(s[0] >> 2) & 0x3f];
-        *d++ = basis64[((s[0] & 3) << 4) | (s[1] >> 4)];
-        *d++ = basis64[((s[1] & 0x0f) << 2) | (s[2] >> 6)];
-        *d++ = basis64[s[2] & 0x3f];
+        *d++ = basis[(s[0] >> 2) & 0x3f];
+        *d++ = basis[((s[0] & 3) << 4) | (s[1] >> 4)];
+        *d++ = basis[((s[1] & 0x0f) << 2) | (s[2] >> 6)];
+        *d++ = basis[s[2] & 0x3f];
         s += 3;
         len -= 3;
     }
 
     if(len) {
-        *d++ = basis64[(s[0] >> 2) & 0x3f];
+        *d++ = basis[(s[0] >> 2) & 0x3f];
 
         if(len == 1) {
-            *d++ = basis64[(s[0] & 3) << 4];
+            *d++ = basis[(s[0] & 3) << 4];
             *d++ = '=';
 
         } else {
-            *d++ = basis64[((s[0] & 3) << 4) | (s[1] >> 4)];
-            *d++ = basis64[(s[1] & 0x0f) << 2];
+            *d++ = basis[((s[0] & 3) << 4) | (s[1] >> 4)];
+            *d++ = basis[(s[1] & 0x0f) << 2];
         }
 
-        *d++ = '=';
+        if(padding) {
+            *d++ = '=';
+        }
     }
 
     return d - dst;
 }
 
-int base64_decode_internal(unsigned char *dst, const unsigned char *src, size_t slen, const unsigned char *basis)
+int base64_encode(unsigned char *dst, const unsigned char *src, int len)
+{
+    static unsigned char basis64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+    return base64_encode_internal(dst, src, len, basis64, 1);
+}
+
+int base64_encode_url(unsigned char *dst, unsigned char *src, int len)
+{
+    static unsigned char basis64_url[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+
+    return base64_encode_internal(dst, src, len, basis64_url, 0);
+}
+
+static int base64_decode_internal(unsigned char *dst, const unsigned char *src, size_t slen, const unsigned char *basis)
 {
     size_t len;
     unsigned char *d;
