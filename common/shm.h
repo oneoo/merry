@@ -1,7 +1,5 @@
 #include <stdlib.h>
-#include <sys/sem.h>
 #include <sys/shm.h>
-#include <semaphore.h>
 #include "smp.h"
 
 #ifndef __SHM_H
@@ -9,18 +7,8 @@
 
 typedef struct _shm_t {
     int shm_id;
-    int sem_id;
     void *p;
 } shm_t;
-
-#ifndef __APPLE__
-union semun {
-    int              val;    /* Value for SETVAL */
-    struct semid_ds *buf;    /* Buffer for IPC_STAT, IPC_SET */
-    unsigned short  *array;  /* Array for GETALL, SETALL */
-    struct seminfo  *__buf;  /* Buffer for IPC_INFO (Linux specific) */
-};
-#endif
 
 shm_t *shm_malloc(size_t size);
 void shm_free(shm_t *shm);

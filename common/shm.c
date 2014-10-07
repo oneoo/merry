@@ -8,13 +8,13 @@ static int shm_ftok_id = 1;
 
 shm_t *shm_malloc(size_t size)
 {
-    int oflag, sem_id, shm_id;
-    union semun arg;
+    int oflag, shm_id;
 
     /* create and init a shared memory segment for the counter */
-    oflag = 0600 | IPC_CREAT;
+    oflag = IPC_CREAT | SHM_R | SHM_W | IPC_EXCL;
 
-    if((shm_id = shmget(ftok(process_chdir, shm_ftok_id), size + sizeof(int), oflag)) < 0) {
+    //ftok(process_chdir, shm_ftok_id)
+    if((shm_id = shmget(IPC_PRIVATE, size + sizeof(int), oflag)) < 0) {
         perror("shmget error\n");
         return NULL;
     }
@@ -27,24 +27,8 @@ shm_t *shm_malloc(size_t size)
 
     memset(p, 0, size + sizeof(int));
 
-    if((sem_id = semget(ftok(process_chdir, shm_ftok_id), 1, oflag)) < 0) {
-        if(shmctl(shm_id, IPC_RMID, NULL) == -1) {
-            perror("shmctl del error\n");
-        }
-
-        perror("semget error\n");
-        return NULL;
-    }
-
-    arg.val = 1; /* binary semaphore */
-
-    if(semctl(sem_id, 0, SETVAL, arg) < 0) {
-        return NULL;
-    }
-
     shm_t *o = malloc(sizeof(shm_t));
     o->shm_id = shm_id;
-    o->sem_id = sem_id;
     o->p = p + sizeof(int);
 
     shm_ftok_id++;
@@ -62,11 +46,6 @@ void shm_free(shm_t *shm)
         perror("shmctl del error\n");
     }
 
-    /* remove the semaphore and shm segment */
-    if(semctl(shm->sem_id, 1, IPC_RMID, 0) == -1) {
-        perror("semctl del error\n");
-    }
-
     free(shm);
     shm = NULL;
 }
@@ -77,32 +56,6 @@ int shm_lock(shm_t *shm)
         return 1;
     }
 
-    /*
-    static struct sembuf sembuf;
-
-    sembuf.sem_num = 0;
-    sembuf.sem_op = -1;
-    sembuf.sem_flg = 0;
-
-    int ret = 0;
-
-    while(1) {
-        ret = semop(shm->sem_id, &sembuf, 1);
-
-        if(ret < 0) {
-            if(errno == EINTR) {
-                continue;
-
-            } else {
-                return -1;
-            }
-        }
-
-        break;
-    }
-
-    return ret;
-    */
     gcc_lock((int *)((char *)shm->p - sizeof(int)));
     return 1;
 }
@@ -113,32 +66,6 @@ int shm_unlock(shm_t *shm)
         return 1;
     }
 
-    /*
-    static struct sembuf sembuf;
-
-    sembuf.sem_num = 0;
-    sembuf.sem_op =  1;
-    sembuf.sem_flg = 0;
-
-    int ret = 0;
-
-    while(1) {
-        ret = semop(shm->sem_id, &sembuf, 1);
-
-        if(ret < 0) {
-            if(errno == EINTR) {
-                continue;
-
-            } else {
-                return -1;
-            }
-        }
-
-        break;
-    }
-
-    return ret;
-    */
     gcc_unlock((int *)((char *)shm->p - sizeof(int)));
     return 1;
 }
