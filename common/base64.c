@@ -44,7 +44,7 @@ int base64_encode(unsigned char *dst, const unsigned char *src, int len)
     return base64_encode_internal(dst, src, len, basis64, 1);
 }
 
-int base64_encode_url(unsigned char *dst, unsigned char *src, int len)
+int base64_encode_url(unsigned char *dst, const unsigned char *src, int len)
 {
     static unsigned char basis64_url[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 
