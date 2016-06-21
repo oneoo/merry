@@ -163,7 +163,7 @@ char *_ultostr(void *str, unsigned long val, unsigned base)
     _uldiv_t r;
 
     if(base > 64) {//36
-        _str[0] = '\0';
+        _str = '\0';
         return NULL;
     }
 
@@ -177,6 +177,15 @@ char *_ultostr(void *str, unsigned long val, unsigned base)
     *_str   = '\0';
     return _str;
 }
+static int char_in_string(const char a,const char *b){
+int i;
+for(i=0;b[i];i++){
+     if(a==b[i])
+        return 1;
+}
+        return 0;
+}
+
 
 char *strsplit(const void *string_org, int org_len, const char *demial, char **last, int *len)
 {
@@ -197,6 +206,10 @@ char *strsplit(const void *string_org, int org_len, const char *demial, char **l
 
     } else {
         str = (unsigned char *)string_org;
+	while(char_in_string(*str,demial)){
+         str++;
+        }
+
     }
 
     if(!str) {
@@ -205,7 +218,7 @@ char *strsplit(const void *string_org, int org_len, const char *demial, char **l
 
     p = str;
 
-    while(p < (unsigned char *)string_org + org_len && *p != demial[0]) {
+    while(p < (unsigned char *)string_org + org_len && !char_in_string(*p,demial)) {
         p++;
     }
 
@@ -214,12 +227,15 @@ char *strsplit(const void *string_org, int org_len, const char *demial, char **l
 
     } else {
         *last = (char *)p + 1;
+	while(char_in_string(**last,demial)){
+        *last=((char *)(*last))+1;
+        }
+
     }
 
     if(str) {
         if(*last != string_org) {
-            *len = (*last - (char *)str) - 1;
-
+	    *len = ((char *)p - (char *)str);
         } else {
             *len = (unsigned char *)(string_org + org_len) - str;
         }
