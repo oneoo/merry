@@ -163,7 +163,7 @@ char *_ultostr(void *str, unsigned long val, unsigned base)
     _uldiv_t r;
 
     if(base > 64) {//36
-        _str = '\0';
+        _str[0] = '\0';
         return NULL;
     }
 
