@@ -285,11 +285,11 @@ typedef int ecb_bool;
 #define ecb_const      ecb_attribute ((__const__))
 #define ecb_pure       ecb_attribute ((__pure__))
 
-#if ECB_C11
-  #define ecb_noreturn   _Noreturn
-#else
+//#if ECB_C11
+//  #define ecb_noreturn   _Noreturn
+//#else
   #define ecb_noreturn   ecb_attribute ((__noreturn__))
-#endif
+//#endif
 
 #if ECB_GCC_VERSION(4,3)
   #define ecb_artificial ecb_attribute ((__artificial__))
