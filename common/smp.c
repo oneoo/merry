@@ -17,6 +17,19 @@ simple memory pool
     ---------------------------
 */
 
+static volatile int smp_locker;
+static void smp_lock()
+{
+    while(__sync_val_compare_and_swap(&smp_locker, 0, 1));
+
+    asm volatile("lfence" ::: "memory");
+}
+static void smp_unlock()
+{
+    smp_locker = 0;
+    asm volatile("sfence" ::: "memory");
+}
+
 static void *head[MAX_SMP_SIZE / 32] = {0};
 static unsigned short link_c[MAX_SMP_SIZE / 32] = {0};
 
@@ -82,6 +95,8 @@ static void add_to_smp_link(void *p, int s, char *f, int l)
         n->l2 = old_l;
     }
 
+    smp_lock();
+
     if(!smp_link[s % 32]) {
         smp_link[s % 32] = n;
 
@@ -90,6 +105,8 @@ static void add_to_smp_link(void *p, int s, char *f, int l)
         ((smp_link_t *)smp_link[s % 32])->priv = n;
         smp_link[s % 32] = n;
     }
+
+    smp_unlock();
 }
 
 #ifdef SMPDEBUG
@@ -104,7 +121,7 @@ static void delete_in_smp_link(void *p, int s)
     }
 
     s = s / 32;
-
+    smp_lock();
     smp_link_t *n = smp_link[s % 32];
 
     while(n) {
@@ -129,6 +146,7 @@ static void delete_in_smp_link(void *p, int s)
             void *m = n;
             n = n->next;
             free(m);
+            smp_unlock();
             return ;
 
         } else {
@@ -137,6 +155,7 @@ static void delete_in_smp_link(void *p, int s)
 
     }
 
+    smp_unlock();
     printf("free error %p\n", p);
     exit(1);
 }
@@ -145,6 +164,7 @@ static void delete_in_smp_link(void *p, int s)
 void dump_smp_link()
 {
 #ifdef SMPDEBUG
+    smp_lock();
     int i = 0;
     smp_link_t *n = NULL;
 
@@ -158,6 +178,7 @@ void dump_smp_link()
         }
     }
 
+    smp_unlock();
 #endif
 }
 
@@ -186,11 +207,13 @@ void *smp_malloc(unsigned int size)
 
     short k = (size / 32) % (MAX_SMP_SIZE / 32);
     void *p = NULL;
+    smp_lock();
 
     if(head[k] == NULL) {
         p = malloc(_SSIZE + size);
 
         if(!p) {
+            smp_unlock();
             return NULL;
         }
 
@@ -203,6 +226,7 @@ void *smp_malloc(unsigned int size)
 
     }
 
+    smp_unlock();
     return (char *)p + _SSIZE;
 }
 
@@ -329,16 +353,19 @@ int smp_free(void *p)
         max = MAX_SMP_SIZE / (_S_PTR(p) * 32);
     }
 
+    smp_lock();
+
     if(link_c[k]++ >= max) {
         link_c[k] --;
         free(p);
+        smp_unlock();
         return 1;
     }
 
     *(void **)((char *)p + _SSIZE) = head[k];
 
     head[k] = p;
-
+    smp_unlock();
     return 1;
 }
 
@@ -361,6 +388,7 @@ void smp_free_all()
     int i = 0;
     smp_link_t *n = NULL, *m = NULL;
     void *p = NULL;
+    smp_lock();
 
     for(i = 0; i < 32; i++) {
         n = smp_link[i];
@@ -393,6 +421,7 @@ void smp_free_all()
         }
     }
 
+    smp_unlock();
 #endif
 }
 
