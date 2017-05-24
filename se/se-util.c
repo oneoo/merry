@@ -484,7 +484,7 @@ int se_set_nonblocking(int fd, int nonblocking)
 static int __be_connect(se_ptr_t *ptr)
 {
     _se_util_epdata_t *epd = ptr->data;
-    se_delete(epd->se_ptr);
+
     int result = 0;
     socklen_t result_len = sizeof(result);
 
@@ -498,6 +498,7 @@ static int __be_connect(se_ptr_t *ptr)
         epd->fd = -1;
     }
 
+    se_delete(epd->se_ptr);
     delete_timeout(epd->timeout_ptr);
     epd->connect_cb(epd->data, epd->fd);
     free(epd);
@@ -638,25 +639,29 @@ int se_connect(int loop_fd, const char *host, int port, int timeout, se_be_conne
         }
     }
 
-    epd->se_ptr = se_add(loop_fd, fd, epd);
-    se_be_write(epd->se_ptr, __be_connect);
-
     int ret = connect(fd, (struct sockaddr *) &rt_addr, sizeof(struct sockaddr_in));
 
     if(ret == 0) {
-        se_delete(epd->se_ptr);
         //epd->connect_cb(data, fd);
         free(epd);
         return fd;
 
     } else if(ret == -1 && errno != EINPROGRESS) {
         close(epd->fd);
-        se_delete(epd->se_ptr);
         //epd->connect_cb(data, -1);
         free(epd);
         return -1;
     }
 
+    epd->se_ptr = se_add(loop_fd, fd, epd);
+
+    if(!epd->se_ptr) {
+        close(epd->fd);
+        free(epd);
+        return -1;
+    }
+
+    se_be_write(epd->se_ptr, __be_connect);
     epd->timeout_ptr = add_timeout(epd, timeout, connect_timeout_handle);
     return -2; // be yield
 }
