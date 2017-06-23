@@ -25,7 +25,7 @@
 #ifndef _NETWORK_H
 #define _NETWORK_H
 
-#define EP_D_BUF_SIZE 4096
+#define EP_D_BUF_SIZE 1024*32
 
 int set_nonblocking(int fd, int blocking);
 int network_bind(const char *addr, int port);
