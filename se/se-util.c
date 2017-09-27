@@ -6,7 +6,6 @@ static struct sockaddr_in dns_servers[4];
 static int dns_server_count = 0;
 static unsigned char buf_4096[4096];
 static struct sockaddr_in rt_addr = {0};
-static struct sockaddr_in null_addr = {0};
 static void *dns_cache[3][64] = {{0}, {0}, {0}};
 static int dns_cache_ttl = 180;
 
@@ -47,13 +46,13 @@ static int be_accept_f(se_ptr_t *ptr)
     return 1;
 }
 
-int se_accept(int loop_fd, int server_fd, se_be_accept_cb _be_accept)
+se_ptr_t *se_accept(int loop_fd, int server_fd, se_be_accept_cb _be_accept)
 {
     se_ptr_t *ptr = se_add(loop_fd, server_fd, NULL);
     ptr->fd = server_fd;
     ptr->data = _be_accept;
     se_be_read(ptr, be_accept_f);
-    return 1;
+    return ptr;
 }
 
 void add_dns_cache(const char *name, struct in_addr addr, int do_recache)
@@ -173,9 +172,9 @@ int be_get_dns_result(se_ptr_t *ptr)
         delete_timeout(epd->timeout_ptr);
         epd->timeout_ptr = NULL;
         int _dns_query_fd = epd->fd;
+        se_delete(epd->se_ptr);
         close(epd->fd);
         epd->fd = -1;
-        se_delete(epd->se_ptr);
 
         const unsigned char *p = NULL, *e = NULL;
         dns_query_header_t *header = NULL;
@@ -273,7 +272,8 @@ int be_get_dns_result(se_ptr_t *ptr)
             return 0;
 
         } else {
-            epd->cb(epd->data, null_addr);
+            rt_addr.sin_addr.s_addr = INADDR_NONE;
+            epd->cb(epd->data, rt_addr);
             free(epd);
 
             return 0;
@@ -289,10 +289,12 @@ int be_get_dns_result(se_ptr_t *ptr)
 static void dns_query_timeout_handle(void *ptr)
 {
     _se_util_epdata_t *epd = ptr;
+    se_delete(epd->se_ptr);
     close(epd->fd);
     delete_timeout(epd->timeout_ptr);
     se_errno = SE_DNS_QUERY_TIMEOUT;
-    epd->cb(epd->data, null_addr);
+    rt_addr.sin_addr.s_addr = INADDR_NONE;
+    epd->cb(epd->data, rt_addr);
     se_errno = 0;
     free(epd);
 }
@@ -437,9 +439,6 @@ int se_dns_query(int loop_fd, const char *name, int timeout, se_be_dns_query_cb 
     *p++ = 1;           /* Class: inet, 0x0001 */
     n = (unsigned char *) p - buf_4096;      /* Total packet length */
 
-    epd->se_ptr = se_add(loop_fd, epd->fd, epd);
-    se_be_read(epd->se_ptr, be_get_dns_result);
-
     sendto(
         epd->fd,
         buf_4096,
@@ -459,6 +458,9 @@ int se_dns_query(int loop_fd, const char *name, int timeout, se_be_dns_query_cb 
     );
 
     epd->timeout_ptr = add_timeout(epd, timeout, dns_query_timeout_handle);
+
+    epd->se_ptr = se_add(loop_fd, epd->fd, epd);
+    se_be_read(epd->se_ptr, be_get_dns_result);
 
     return 1;
 }
@@ -509,6 +511,7 @@ static int __be_connect(se_ptr_t *ptr)
 static void connect_timeout_handle(void *ptr)
 {
     _se_util_epdata_t *epd = ptr;
+    se_delete(epd->se_ptr);
     close(epd->fd);
     delete_timeout(epd->timeout_ptr);
     se_errno = SE_CONNECT_TIMEOUT;
@@ -520,8 +523,7 @@ static void connect_timeout_handle(void *ptr)
 static void be_dns_query(void *data, struct sockaddr_in addr)
 {
     _se_util_epdata_t *epd = (_se_util_epdata_t *)data;
-    epd->se_ptr = se_add(epd->loop_fd, epd->fd, epd);
-    se_be_write(epd->se_ptr, __be_connect);
+
     addr.sin_port = htons(epd->port);
 
     delete_timeout(epd->timeout_ptr);
@@ -530,20 +532,20 @@ static void be_dns_query(void *data, struct sockaddr_in addr)
     int ret = connect(epd->fd, (struct sockaddr *) &addr, sizeof(struct sockaddr_in));
 
     if(ret == 0) {
-        se_delete(epd->se_ptr);
         epd->connect_cb(epd->data, epd->fd);
         free(epd);
         return;
 
     } else if(ret == -1 && errno != EINPROGRESS) {
         close(epd->fd);
-        se_delete(epd->se_ptr);
         epd->connect_cb(epd->data, -1);
         free(epd);
         return;
     }
 
+    epd->se_ptr = se_add(epd->loop_fd, epd->fd, epd);
     epd->timeout_ptr = add_timeout(epd, 3000, connect_timeout_handle);
+    se_be_write(epd->se_ptr, __be_connect);
 }
 
 int se_connect(int loop_fd, const char *host, int port, int timeout, se_be_connect_cb _be_connect, void *data)
@@ -583,9 +585,6 @@ int se_connect(int loop_fd, const char *host, int port, int timeout, se_be_conne
 #ifdef linux
 
     if(port < 1) { /// connect to unix domain socket
-        epd->se_ptr = se_add(loop_fd, fd, epd);
-        se_be_write(epd->se_ptr, __be_connect);
-
         struct sockaddr_un un;
 
         bzero(&un, sizeof(struct sockaddr_un));
@@ -596,7 +595,6 @@ int se_connect(int loop_fd, const char *host, int port, int timeout, se_be_conne
         int ret = connect(fd, (struct sockaddr *) &un, length);
 
         if(ret == 0) {
-            se_delete(epd->se_ptr);
             //epd->connect_cb(data, fd);
             free(epd);
 
@@ -604,13 +602,14 @@ int se_connect(int loop_fd, const char *host, int port, int timeout, se_be_conne
 
         } else if(ret == -1 && errno != EINPROGRESS) {
             close(epd->fd);
-            se_delete(epd->se_ptr);
             //epd->connect_cb(data, -1);
             free(epd);
             return -1;
         }
 
+        epd->se_ptr = se_add(loop_fd, fd, epd);
         epd->timeout_ptr = add_timeout(epd, timeout, connect_timeout_handle);
+        se_be_write(epd->se_ptr, __be_connect);
         return -2; // be yield
     }
 
@@ -630,8 +629,7 @@ int se_connect(int loop_fd, const char *host, int port, int timeout, se_be_conne
 
             rt_addr.sin_addr.s_addr = ((struct in_addr *) localhost_ent->h_addr_list[0])->s_addr;
 
-        } else if(get_dns_cache(host, &rt_addr.sin_addr)) {
-        } else {
+        } else if(!get_dns_cache(host, &rt_addr.sin_addr)) {
             //epd->timeout_ptr = add_timeout(epd, timeout, connect_timeout_handle);
             epd->loop_fd = loop_fd;
             se_dns_query(loop_fd, host, timeout, be_dns_query, epd);
@@ -661,7 +659,8 @@ int se_connect(int loop_fd, const char *host, int port, int timeout, se_be_conne
         return -1;
     }
 
-    se_be_write(epd->se_ptr, __be_connect);
     epd->timeout_ptr = add_timeout(epd, timeout, connect_timeout_handle);
+    se_be_write(epd->se_ptr, __be_connect);
+
     return -2; // be yield
 }

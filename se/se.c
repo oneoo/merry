@@ -9,6 +9,7 @@
 static struct epoll_event events[SE_SIZE], ev;
 static unsigned long working_io_count = 0;
 static int in_loop = 0;
+static unsigned long quitime = 0;
 
 /* libeio */
 static int eio_inited = 0;
@@ -72,18 +73,29 @@ int se_loop(int loop_fd, int waitout, se_waitout_proc_t waitout_proc)
         for(i = 0; i < n; i++) {
             ptr = events[i].data.ptr;
 
-            if(events[i].events & (EPOLLIN | EPOLLHUP | EPOLLERR) && ptr->rfunc) {
+            if(events[i].events & (EPOLLIN | EPOLLET) && ptr->rfunc) {
                 ptr->rfunc(ptr);
 
-            } else if(events[i].events & (EPOLLOUT | EPOLLHUP | EPOLLERR) && ptr->wfunc) {
+            } else if(events[i].events & (EPOLLOUT | EPOLLET) && ptr->wfunc) {
                 ptr->wfunc(ptr);
             }
         }
 
-        if(!r || (n == -1 && errno != EINTR) || (check_process_for_exit() && working_io_count == 0)) {
-            if(check_process_for_exit()) {
-                on_process_exit_handler(0, NULL, NULL);
+        if(!r || (n == -1 && errno != EINTR)) {
+
+            break;
+
+        } else if(check_process_for_exit()) {
+            if(working_io_count > 0 && (quitime == 0 || time(NULL) - quitime < 10)) {
+                if(quitime == 0) {
+                    quitime = time(NULL);
+                }
+
+                continue;
             }
+
+            quitime = 0;
+            on_process_exit_handler(0, NULL, NULL);
 
             break;
         }
@@ -100,7 +112,7 @@ se_ptr_t *se_add(int loop_fd, int fd, void *data)
     se_ptr_t *ptr = malloc(sizeof(se_ptr_t));
 
     if(!ptr) {
-        return ptr;
+        return NULL;
     }
 
     ptr->loop_fd = loop_fd;
@@ -147,7 +159,7 @@ int se_be_read(se_ptr_t *ptr, se_rw_proc_t func)
     ptr->wfunc = NULL;
 
     ev.data.ptr = ptr;
-    ev.events = EPOLLIN | EPOLLRDHUP | EPOLLHUP | EPOLLERR;
+    ev.events = EPOLLIN | EPOLLET;
 
     return epoll_ctl(ptr->loop_fd, EPOLL_CTL_MOD, ptr->fd, &ev);
 }
@@ -158,7 +170,7 @@ int se_be_write(se_ptr_t *ptr, se_rw_proc_t func)
     ptr->wfunc = func;
 
     ev.data.ptr = ptr;
-    ev.events = EPOLLOUT | EPOLLRDHUP | EPOLLHUP | EPOLLERR;
+    ev.events = EPOLLOUT | EPOLLET;
 
     return epoll_ctl(ptr->loop_fd, EPOLL_CTL_MOD, ptr->fd, &ev);
 }
@@ -180,7 +192,7 @@ int se_be_rw(se_ptr_t *ptr, se_rw_proc_t rfunc, se_rw_proc_t wfunc)
     ptr->wfunc = wfunc;
 
     ev.data.ptr = ptr;
-    ev.events = EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLHUP | EPOLLERR;
+    ev.events = EPOLLIN | EPOLLOUT | EPOLLET;
 
     return epoll_ctl(ptr->loop_fd, EPOLL_CTL_MOD, ptr->fd, &ev);
 }
